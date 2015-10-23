@@ -1,0 +1,1600 @@
+From: <Saved by Microsoft Internet Explorer 5>
+Subject: Ted Felix - Sprites in QBASIC
+Date: Sat, 24 Dec 2005 12:16:25 -0600
+MIME-Version: 1.0
+Content-Type: multipart/related;
+	type="text/html";
+	boundary="----=_NextPart_000_0000_01C60883.DC671940"
+X-MimeOLE: Produced By Microsoft MimeOLE V6.00.2900.2670
+
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_0000_01C60883.DC671940
+Content-Type: text/html;
+	charset="Windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Content-Location: http://tedfelix.com/qbasic/sprites.html
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD><TITLE>Ted Felix - Sprites in QBASIC</TITLE>
+<META http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Dwindows-1252">
+<META content=3D"MSHTML 6.00.2900.2802" name=3DGENERATOR></HEAD>
+<BODY>
+<H1>Sprites in QBASIC</H1>
+<P>by Ted Felix</P>
+<H2>What are sprites?</H2>
+<P>Sprites are small pictures that can be moved around the screen and =
+animated.=20
+By using sprites, you can make games that have a more realistic look. =
+Sprites=20
+are two dimensional (flat) but if you are good at drawing, you can make =
+them=20
+look like they have depth.</P>
+<P>For example, Nintendo's Legend of Zelda is an entirely sprite-based =
+game, and=20
+perhaps one of the best. Take a look:</P><IMG=20
+src=3D"http://tedfelix.com/qbasic/zelda.jpg"><BR>Link and the Octorox =
+are clearly=20
+flat two-dimensional sprites.=20
+<P>But, there's no reason to stick with a 2D look when you can fake a 3D =
+look.=20
+Age of Empires is a good example of 3D-looking sprites.</P>
+<P>(Age of Empires for more 3D-looking sprites)</P>
+<P>QBASIC has two statements that support sprites: GET and PUT. We will =
+be=20
+working with GET and PUT quite a bit in this section, but in the end we =
+will=20
+have to find a new way to draw sprites. There are some pretty serious =
+problems=20
+with GET and PUT as you will see.</P>
+<P>If you need to brush up on your QBASIC skills, see my QBASIC Tutorial =
+before=20
+you continue:</P>
+<P><A=20
+href=3D"http://tedfelix.com/qbasic/index.html">http://tedfelix.com/qbasic=
+/index.html</A></P>
+<H2>Making a Sprite</H2>
+<P>Since sprites are small pictures, we need a picture to make a sprite. =
+There=20
+are many ways to do this. The simplest way is to first draw the picture =
+on the=20
+screen using the graphics statements in QBASIC (PSET, LINE, CIRCLE, =
+PAINT,=20
+etc...). Let's start with a simple filled in CIRCLE using CIRCLE and=20
+PAINT:</P><CODE><PRE>  SCREEN 13
+  CLS
+  CIRCLE (4, 3), 4, 4
+  PAINT (4, 3), 12, 4
+</PRE></CODE>
+<P>Once we have the picture on the screen, we can use GET to copy the =
+picture=20
+from the screen into an array. Normally we think of arrays as being =
+lists of=20
+variables. GET treats an array as if it is simply a chunk of memory =
+where it can=20
+store a picture. We need to make sure the array is big enough to hold =
+our=20
+picture. For this picture, we will need an array that can hold 37 =
+integers=20
+(%):</P><CODE><PRE>  DIM Ball%(37)
+</PRE></CODE>
+<P>How did I know it had to be 37? Well, there is a formula you can use =
+to=20
+figure this out, but since this program is so small and there's only one =
+sprite,=20
+I used trial-and-error. I kept picking numbers and trying to run the =
+program=20
+until I found the right number. QBASIC will give you an error if the =
+array is=20
+too small. See the QBASIC Help topic "Screen Image Arrays and =
+Compatibility" for=20
+the formula.</P>
+<P>Now that we have our array, we can use GET to copy the picture from =
+the=20
+screen into the array:</P><CODE><PRE>  GET (0, 0)-(8, 7), Ball%
+</PRE></CODE>
+<P>The coordinates (0, 0)-(8, 7) define a rectangle on the screen. This =
+is done=20
+the same way you tell the LINE statement where you want to draw a box on =
+the=20
+screen. GET will copy the picture from that rectangle into the Ball% =
+array.</P>
+<P>Once the sprite is stored in the Ball% array, we can draw it anywhere =
+we want=20
+on the screen using PUT. To prove that all of this has worked, let's use =
+PUT to=20
+copy the picture from the Ball% array back to the screen. How about near =
+the=20
+center of the screen:</P><CODE><PRE>  PUT (160, 100), Ball%
+</PRE></CODE>
+<P>So, here's our first sprite example all together and with comments =
+(comments=20
+are good):</P><CODE><PRE>  SCREEN 13
+  CLS
+  ' Draw a filled circle for our sprite
+  CIRCLE (4, 3), 4, 4
+  PAINT (4, 3), 12, 4
+
+  ' Set aside enough space to hold the sprite
+  DIM Ball%(37)
+
+  ' Get the sprite into the Ball% array
+  GET (0, 0)-(8, 7), Ball%
+
+  ' Display the sprite elsewhere on the screen
+  PUT (160, 100), Ball%
+</PRE></CODE>
+<P>Running this example, you will see a filled circle in the upper left =
+corner=20
+of the screen. This is the first circle we drew to make the sprite. Then =
+you=20
+will see another filled circle near the center of the screen. This is a =
+copy of=20
+the sprite made by the PUT statement.</P>
+<H2>Making a Sprite Move</H2>
+<P>I have to admit that I am writing this chapter of the book first. So, =
+I'm=20
+assuming that I've already discussed the basics of motion in an as yet =
+unwritten=20
+chapter on real-time text games. I will fairly quickly go over motion =
+here, but=20
+not discuss it in too much depth.</P>
+<P>Making a sprite move is very similar to making an object move in any =
+other=20
+kind of 2-D game. We keep track of the sprite's X and Y position, and =
+change=20
+them as time goes by. Here's an example that adds motion to our=20
+sprite:</P><CODE><PRE>  DEFINT A-Z  ' Makes things faster
+  SCREEN 13
+  CLS
+
+  ' Draw a filled circle for our sprite
+  CIRCLE (4, 3), 4, 4
+  PAINT (4, 3), 12, 4
+
+  ' Set aside enough space to hold the sprite
+  DIM Ball%(37)
+
+  ' Get the sprite into the Ball% array
+  GET (0, 0)-(8, 7), Ball%
+
+  CLS
+
+  ' Screen size
+  CONST XMax =3D 320
+  CONST YMax =3D 200
+
+  ' Starting position of the sprite
+  X =3D 160
+  Y =3D 100
+
+  ' Motion
+  DX =3D 1
+  DY =3D 1
+
+  DO
+    ' Draw the sprite at its current position
+    PUT (X, Y), Ball%
+
+    ' Save the old position so that we can remove the sprite before
+    ' we redraw it in its new location.
+    PX =3D X
+    PY =3D Y
+
+    ' Change the sprite's position
+    X =3D X + DX
+    Y =3D Y + DY
+
+    ' If we have hit the right-hand side of the screen
+    IF X &gt; XMax - 10 THEN
+      ' Make the sprite go left
+      DX =3D -1
+    END IF
+
+    ' If we have hit the left-hand side of the screen
+    IF X &lt; 1 THEN
+      ' Make the sprite go right
+      DX =3D 1
+    END IF
+
+    ' If we have hit the bottom of the screen
+    IF Y &gt; YMax - 9 THEN
+      ' Make the sprite go up
+      DY =3D -1
+    END IF
+
+    ' If we have hit the top of the screen
+    IF Y &lt; 1 THEN
+      ' Make the sprite go down
+      DY =3D 1
+    END IF
+
+    ' Timing Loop.  Pure Evil.  Depends on computer speed.
+    ' Change the 30000 to change the speed of the ball.
+    FOR I =3D 1 TO 30000
+    NEXT I
+
+    ' Remove the sprite from the screen before redrawing
+    ' it in its new position at the top of the loop.
+    PUT (PX, PY), Ball%
+
+  LOOP WHILE INKEY$ =3D ""
+</PRE></CODE>
+<P>You might need to adjust the 30000 in the timing loop to get this to =
+go at a=20
+reasonable speed on your computer.</P>
+<P>The strangest thing about this example is how it uses PUT both to =
+draw the=20
+sprite and to remove it. PUT can do this because it draws our sprite on =
+the=20
+screen using something called an "exclusive or" or "XOR" for short. We =
+will talk=20
+more about this later.</P>
+<H2>Making a More Interesting Sprite</H2>
+<P>Using CIRCLE and PAINT is fast, and handy, but let's face it. It's =
+hard to=20
+draw anything really interesting this way. For that, we need what's =
+called a=20
+bitmap. A bitmap is a picture stored in a way a computer can understand. =
+Since=20
+computers are most fond of numbers, it's no surprise that a bitmap is =
+made up of=20
+numbers.</P>
+<P>Here's an example of a tiny bitmap stored in DATA =
+statements:</P><CODE><PRE>    DATA  0,15, 0
+    DATA 15, 0,15
+    DATA  0,15, 0
+</PRE></CODE>
+<P>It's like coloring by number. Where there is a 0, there will be a =
+black dot=20
+(pixel) on the screen. Where there is a 15, there will be a white pixel =
+on the=20
+screen. This particular bitmap is organized to be 3 pixels wide by 3 =
+pixels=20
+high. It is very small as we will see when we draw it.</P><CODE><PRE>  =
+SCREEN 13
+  CLS
+
+  FOR Y =3D 0 TO 2
+    FOR X =3D 0 TO 2
+      READ DotColor
+      PSET (X, Y), DotColor
+    NEXT X
+  NEXT Y
+</PRE></CODE>
+<P>This reads the bitmap from the DATA statements and draws it on the =
+screen=20
+using PSET. You will see a very tiny diamond in the upper left corner of =
+the=20
+screen. That's our bitmap.</P>
+<P>Try changing the bitmap to this and see what it looks =
+like.</P><CODE><PRE>    DATA  0,15, 0
+    DATA 15, 0,15
+    DATA 15, 0,15
+</PRE></CODE>
+<P>And finally, let's try a more colorful bitmap.</P><CODE><PRE>    DATA =
+14, 0,13
+    DATA  0,15, 0
+    DATA 12, 0,11
+</PRE></CODE>
+<P>Our bitmaps don't have to be tiny, we can make them as big as we =
+want. Here's=20
+a bitmap that is 15 pixels wide by 15 pixels high. Hopefully you can cut =
+and=20
+paste this one into QBASIC. Otherwise, it's a lot of typing. Can you =
+guess what=20
+it is a picture of?</P><CODE><PRE>DATA =
+00,00,00,00,00,00,00,00,00,00,12,12,00,00,00
+DATA 00,00,00,00,00,00,00,00,00,00,15,15,00,00,00
+DATA 00,00,00,00,00,00,00,00,00,15,15,15,15,00,00
+DATA 00,00,00,00,00,00,00,00,00,15,15,00,15,00,00
+DATA 00,00,00,00,00,00,00,00,15,15,15,15,15,14,00
+DATA 00,00,00,00,15,15,15,15,15,15,15,15,15,14,14
+DATA 15,00,15,15,15,15,00,15,15,15,15,15,00,00,00
+DATA 00,15,15,15,15,00,15,15,15,15,15,00,00,00,00
+DATA 15,00,15,15,00,15,15,15,15,15,15,00,00,00,00
+DATA 00,15,15,15,15,00,00,15,15,15,15,00,00,00,00
+DATA 15,00,15,15,15,15,15,15,15,15,00,00,00,00,00
+DATA 00,00,00,00,00,00,15,15,15,00,00,00,00,00,00
+DATA 00,00,00,00,00,00,00,14,00,00,00,00,00,00,00
+DATA 00,00,00,00,00,00,00,14,00,00,00,00,00,00,00
+DATA 00,00,00,00,00,00,14,14,14,00,00,00,00,00,00
+
+SCREEN 13
+CLS
+
+FOR Y =3D 0 TO 14  ' For each row
+  FOR X =3D 0 TO 14  ' For each column
+    READ DotColor
+    PSET (X, Y), DotColor
+  NEXT X
+NEXT Y
+</PRE></CODE>
+<P>You can use graph paper and colored pencils to design your bitmaps, =
+then copy=20
+them block by block into DATA statements. Making large bitmaps like this =
+can=20
+take a lot of time. Fortunately, there are bitmap editors that can make =
+the job=20
+much easier. Unfortunately, those bitmap editors can't write DATA =
+statements for=20
+you. However, if you wanted to, you could write your own bitmap editor =
+in QBASIC=20
+and have it write the DATA statements you need. Might be a good =
+project.</P>
+<P>See the links section at the end for some bitmap editors that might =
+be of=20
+interest.</P>
+<H2>Making a Bitmap Fly</H2>
+<P>Combine the bitmap above with GET and PUT, and you've got yourself a =
+new=20
+sprite.</P>
+<H2>Bitmaps and Files</H2>
+<P>Since DATA statements and files are pretty much the same thing, you =
+could=20
+store your bitmaps in files, and read them in from those files.</P>
+<P>The nice thing about DATA statements is that they are always right =
+where you=20
+can find them. The bad thing is that DATA statements make your program =
+bigger. I=20
+also think DATA statements look a bit messy.</P>
+<P>The nice thing about files is that they do not make your program =
+bigger (or=20
+messier). The bad thing about files is that you need to find them on the =
+hard=20
+disk. Very large game programs usually store their sprites in files to =
+reduce=20
+the size of the program.</P>
+<H2>PUT and Backgrounds</H2>
+<P>Let's go back to the bouncing ball program, and this time we'll add a =
+little=20
+bit of a background. We are going to make half of the screen yellow =
+before we=20
+start drawing the ball. We can do this by adding a LINE statement after =
+we set=20
+up the screen size constants. Here's the part of the program we've=20
+modified:</P><CODE><PRE>  ...
+
+  ' Screen size
+  CONST XMax =3D 320
+  CONST YMax =3D 200
+
+  ' NEW: Make half the screen yellow.
+  LINE (0, 0)-(XMax / 2, YMax), 14, BF
+
+  ' Starting position of the sprite
+  X =3D 160
+  Y =3D 100
+
+  ...
+</PRE></CODE>
+<P>Notice how as the ball enters the yellow area, it changes colors. =
+Although=20
+this is an interesting effect, it might not be what we want. Many times =
+we will=20
+want the background and foreground to stay the same.</P>
+<P>The problem is XOR. As I mentioned before, we are using an exclusive =
+OR, or=20
+"XOR" for short. While XOR is really great for drawing and erasing using =
+the=20
+same bitmap, XOR causes problems when it encounters a background other =
+than=20
+black. We need something new.</P>
+<P>One possible solution is to use a mask along with the bitmap. We PUT =
+the mask=20
+with AND, then PUT the bitmap with OR. This works fine. However, there =
+are so=20
+many problems with PUT that we are going to have to stop using it. =
+Before we do,=20
+we will discuss why in the next section.</P>
+<H2>The Problem With PUT: Clipping and Flipping</H2>
+<P>The first problem with PUT is that it will not clip. If you use PUT =
+too close=20
+to the edge of the screen, QBASIC will stop your program with an error. =
+Try=20
+this:</P><CODE><PRE>  SCREEN 13
+  CLS
+
+  ' Create the sprite
+  CIRCLE (4, 3), 4, 4
+  PAINT (4, 3), 12, 4
+  DIM Ball%(37)
+  GET (0, 0)-(8, 7), Ball%
+
+  ' Draw it past the right edge
+  PUT (312, 100), Ball%
+</PRE></CODE>
+<P>SCREEN 13 goes all the way out to 320 on the X coordinate, yet QBASIC =
+gives=20
+us an Illegal Function Call when we try to draw our sprite at X =
+coordinate 312.=20
+Why? Because the sprite would go off the right edge of the screen. For =
+our=20
+bouncing ball, this isn't a problem because we don't want it to go off =
+the edge=20
+of the screen. In a more complex game, this could be a serious =
+problem.</P>
+<P>Consider a game where the screen scrolls (shifts) from left to right. =
+It=20
+would be nice if the sides smoothly came in on the left, and went out on =
+the=20
+right. But, if you can't draw your sprites at the edges of the screen, =
+the left=20
+and right edge would suddenly disappear (or you'd get an illegal =
+function=20
+call).</P>
+<P>It would be better if PUT would "clip" the sprite by cutting it off =
+where the=20
+screen ends. Unfortunately, PUT cannot do this. This means we need to =
+make our=20
+own PUT that can do clipping.</P>
+<P>The second problem with PUT has to do with page-flipping which will =
+be=20
+discussed later.</P>
+<P>Why is PUT so bad? When PUT was originally created, computers were =
+incredibly=20
+slow. No one ever imagined being able to write a serious game using =
+BASIC. So,=20
+Microsoft didn't take PUT too seriously. Now that computers are =
+incredibly fast,=20
+we can write our own PUT, or use someone else's to solve the problems =
+with=20
+QBASIC's PUT.</P>
+<H2>Making A New PUT</H2>
+<P>Now that I've convinced you that we need a new PUT, it's time to make =
+one.=20
+Our first goal is to get something that acts like QBASIC's PUT. It has =
+to be=20
+able to draw a bitmap on the screen. Although we could write a new GET, =
+there=20
+really isn't a need. Most sprites will be bitmaps, so we can use DATA =
+statements=20
+or files instead of GET to fill in our bitmap array.</P>
+<P>Here's the first example of working with sprites and avoiding PUT. =
+Instead of=20
+GET, we copy the bitmap from the DATA statements into an array. Then we =
+use PSET=20
+to draw what's in the array to the screen.</P><CODE><PRE>DEFINT A-Z
+SCREEN 13
+CLS
+
+' Bitmap for the sprite
+DATA  0, 0, 0,15,15,15, 0, 0, 0
+DATA  0,15,15, 9, 9, 9,15,15, 0
+DATA 15, 9, 9, 9, 9, 9, 9, 9,15
+DATA 15, 9, 9, 9, 9, 9, 9, 9,15
+DATA 15, 9, 9, 9, 9, 9, 9, 9,15
+DATA  0,15,15, 9, 9, 9,15,15, 0
+DATA  0, 0, 0,15,15,15, 0, 0, 0
+
+' An array to hold the sprite
+DIM Ball%(8, 6)
+
+' Read the sprite in from DATA to the array
+FOR Y =3D 0 TO 6
+  FOR X =3D 0 TO 8
+    READ Ball%(X, Y)
+  NEXT X
+NEXT Y
+
+' Draw the sprite from the array onto the screen
+FOR Y =3D 0 TO 6
+  FOR X =3D 0 TO 8
+    PSET (X, Y), Ball%(X, Y)
+  NEXT X
+NEXT Y
+</PRE></CODE>
+<P>Note that this is a two-dimensional array. Two-dimensional arrays are =
+perfect=20
+for this kind of problem. After all, a bitmap is two-dimensional.</P>
+<P>Before we go any further, we really need to break the drawing portion =
+of this=20
+program off into a SUB. We will be needing it in many places when we =
+start=20
+writing more complicated sprite code, so we don't want to copy that =
+piece of=20
+code everywhere. Here it is as a SUB:</P><CODE><PRE>SUB PUT2 (Sprite() =
+AS INTEGER, XSize AS INTEGER, YSize AS INTEGER, X AS INTEGER, Y AS =
+INTEGER)
+  ' Draw the sprite from the array onto the screen
+  FOR YP =3D 0 TO YSize - 1
+    FOR XP =3D 0 TO XSize - 1
+      PSET (X + XP, Y + YP), Sprite%(XP, YP)
+    NEXT XP
+  NEXT YP
+END SUB
+</PRE></CODE>
+<P>It is unfortunate that there is no way to break long lines in QBASIC. =
+That=20
+first line is pretty long and ugly.</P>
+<P>Now we can call the SUB like this:</P><CODE><PRE>    PUT2 Ball%(), 9, =
+7, 0, 0
+</PRE></CODE>
+<P>The first argument "Ball%()" is the array that holds our sprite. PUT2 =
+will=20
+copy from that array to the screen. The next two arguments (9, 7) are =
+the size=20
+of the sprite in pixels (9 across, 7 down). The last two arguments (0, =
+0) are=20
+the X and Y position where the sprite should be drawn.</P>
+<P>Here is the complete program using the new SUB.</P><CODE><PRE>DECLARE =
+SUB PUT2 (Sprite() AS INTEGER, XSize AS INTEGER, YSize AS INTEGER, X AS =
+INTEGER, Y AS INTEGER)
+DEFINT A-Z
+SCREEN 13
+CLS
+
+' Bitmap for the sprite
+DATA  0, 0, 0,15,15,15, 0, 0, 0
+DATA  0,15,15, 9, 9, 9,15,15, 0
+DATA 15, 9, 9, 9, 9, 9, 9, 9,15
+DATA 15, 9, 9, 9, 9, 9, 9, 9,15
+DATA 15, 9, 9, 9, 9, 9, 9, 9,15
+DATA  0,15,15, 9, 9, 9,15,15, 0
+DATA  0, 0, 0,15,15,15, 0, 0, 0
+
+' An array to hold the sprite
+DIM Ball%(8, 6)
+
+' Read the sprite in from DATA to the array
+FOR Y =3D 0 TO 6
+  FOR X =3D 0 TO 8
+    READ Ball%(X, Y)
+  NEXT X
+NEXT Y
+
+' Draw the sprite from the array onto the screen
+PUT2 Ball%(), 9, 7, 0, 0
+
+SUB PUT2 (Sprite() AS INTEGER, XSize AS INTEGER, YSize AS INTEGER, X AS =
+INTEGER, Y AS INTEGER)
+  ' Draw the sprite from the array onto the screen
+  FOR YP =3D 0 TO YSize - 1
+    FOR XP =3D 0 TO XSize - 1
+      PSET (X + XP, Y + YP), Sprite%(XP, YP)
+    NEXT XP
+  NEXT YP
+END SUB
+</PRE></CODE>
+<P>Not bad at all. It wouldn't be too big of a jump to add some motion =
+to our=20
+ball, and see how well this works.</P>
+<P>We'll eventually get to clipping, but first we will solve the =
+infamous=20
+"flicker" problem. This will have an effect on how we do clipping, so =
+we'll get=20
+it out of the way first.</P>
+<H2>Page Flipping</H2>
+<P>In a simple ball-bouncing program, it is hard to see the need for=20
+page-flipping, but imagine a much larger game. One with hundreds of =
+sprites on=20
+the screen at one time. Each time the sprites move, we need to erase =
+them from=20
+the screen and redraw them. Not only that, when we erase them, we have =
+to=20
+restore the background that was under them so they don't destroy it. =
+What a=20
+mess. What a lot of work. This could take quite a bit of time. And all =
+that=20
+time, the user will see what we are doing. The user will see us erasing =
+and=20
+redrawing. It isn't pretty.</P>
+<P>Page-flipping to the rescue! Page-flipping lets us hide what we are =
+doing,=20
+and it will also let us simply start from scratch and redraw the entire =
+screen=20
+instead of worrying about redrawing pieces of the background all the =
+time. If we=20
+have hundreds of sprites, this will be a real time-saver.</P>
+<P>Page-flipping (also called double-buffering) solves these problems by =
+letting=20
+us draw to an invisible screen (a memory buffer, or double-buffer), then =
+copy=20
+that invisible screen to the visible screen. This way our drawing =
+process can't=20
+be seen.</P>
+<P>QBASIC's PCOPY command can be used to do page-flipping. However, it =
+only=20
+works in certain SCREEN modes. SCREENs 7 through 9 are the most notable =
+since=20
+they provide color. Let's start with a simple example of something that =
+could=20
+easily benefit from page-flipping. Try this =
+program:</P><CODE><PRE>SCREEN 9
+DO
+  ' Start with a cleared screen each time
+  CLS
+
+  ' Draw something time-consuming
+  FOR I =3D 1 TO 1000
+    x1 =3D INT(RND * 640)
+    y1 =3D INT(RND * 350)
+    x2 =3D INT(RND * 640)
+    y2 =3D INT(RND * 350)
+    c =3D INT(RND * 16)
+    LINE (x1, y1)-(x2, y2), c
+  NEXT I
+LOOP
+</PRE></CODE>
+<P>It goes so slow you can see it building up the picture each time =
+before it=20
+clears the screen and starts to build up the next picture. Try making =
+the "1000"=20
+larger to make the effect worse. This is pretty awful to watch. Now try =
+the=20
+following changes. Note that only the SCREEN line has changed, and the =
+PCOPY=20
+command has been added in this new version:</P><CODE><PRE>' NEW: Screen =
+9 with 0 as the "active page" and 1 as the "visible page"
+SCREEN 9, 0, 0, 1
+DO
+  ' Start with a cleared screen each time
+  CLS
+
+  ' Draw something time-consuming
+  FOR I =3D 1 TO 1000
+    x1 =3D INT(RND * 640)
+    y1 =3D INT(RND * 350)
+    x2 =3D INT(RND * 640)
+    y2 =3D INT(RND * 350)
+    c =3D INT(RND * 16)
+    LINE (x1, y1)-(x2, y2), c
+  NEXT I
+
+  ' NEW: Flip the page to the screen
+  PCOPY 0, 1
+LOOP
+</PRE></CODE>
+<P>This is much better. We see the image each time, not the drawing of =
+the=20
+image. This is what page-flipping is all about.</P>
+<P>SCREEN 9 provides two pages for us to work with, page 0 and page 1. =
+The=20
+SCREEN command lets us decide how we will work with those pages. In the =
+previous=20
+program, the SCREEN line has mode "9" specified. The next "0" is =
+ignored. After=20
+that is a "0" for the "active page". This is the page where the LINE =
+command=20
+will draw. The next value, a "1" specifies that page 1 will be the =
+"visible=20
+page". This is the page that is displayed on the screen. All together, =
+this says=20
+that we will be drawing on mode 9's page 0 and looking at mode 9's page =
+1. This=20
+seems like we would never see anything at all. That would be true if it =
+weren't=20
+for PCOPY. In fact, try commenting out PCOPY and see what happens. In a =
+word,=20
+"nothing."</P>
+<P>The PCOPY command copies everything from page 0 to page 1 almost =
+instantly.=20
+So we can take our time drawing on page 0, then when we are done, use =
+PCOPY to=20
+copy what we drew to page 1 so the user can see it.</P>
+<P>As an aside, I cheated to make the program even slower. I didn't do a =
+DEFINT=20
+A-Z. This means all the variables are treated as single-precision =
+floating=20
+point. Try throwing in a DEFINT A-Z and you'll notice a slight =
+performance=20
+boost.</P>
+<H2>Page Flipping Without PCOPY</H2>
+<P>Unfortunately, page-flipping with PCOPY is only available in a few =
+SCREEN=20
+modes. It isn't available in the more colorful modes like SCREEN 13. If =
+we want=20
+to do page-flipping in SCREEN 13, we'll have to write our own version of =
+
+PCOPY.</P>
+<P>To make our own PCOPY, we'll need a way to draw to a memory buffer, =
+then copy=20
+that memory buffer to the screen. This is called "double-buffering". The =
+fastest=20
+way to copy something to the screen is to use QBASIC's PUT. It is =
+written in=20
+Assembler, and is very fast. Its drawbacks when working with sprites =
+(clipping,=20
+etc...) are not an issue when we are copying from a memory buffer to the =
+entire=20
+screen. The only thing we need to figure out is how to draw into a =
+memory buffer=20
+that PUT can understand.</P>
+<P>Since we will use PUT to flip our memory buffer to the screen, we =
+must=20
+understand the format of a memory buffer used by PUT. Then we can write =
+some=20
+SUBs that allow us to draw in a PUT-compatible memory buffer. Our most =
+important=20
+SUB will be our PUT2() that we wrote for drawing sprites.</P>
+<P>(Sample using our own double-buffer and PUT)</P>
+<H2>Transparency</H2>
+<P>Where there is a special value in the data, don't draw anything. Pick =
+a=20
+number that isn't a valid color so that we still have access to all the=20
+colors.</P>
+<P>(Sample doing transparency)</P>
+<H2>Clipping</H2>
+<P>Check the bounds. If out of bounds, don't draw. Update PUT2() to be=20
+bounds-aware.</P>
+<P>(Sample with clipping)</P>
+<H2>Optimizations</H2>
+<P>The above examples have been designed primarily for education, not =
+for speed.=20
+Many improvements can be made to increase performance. Here are some=20
+suggestions.</P>
+<P><B>Profile.</B> Be sure to do profiling to make sure your changes =
+have=20
+actually improved things. (Give an example of profiling in QBASIC)</P>
+<P><B>Assembler.</B> Rewrite critical parts of the code in assembler. =
+Our PUT2()=20
+routine is a good candidate.</P>
+<P><B>Space.</B> Make your sprites more space-efficient by storing them =
+using=20
+bytes instead of 16-bit words.</P>
+<P>???</P>
+<H2>Links</H2>
+<P><A =
+href=3D"http://www.geocities.com/griffle_the_waffle/ppi/">Pointless=20
+Products, Inc.</A> has created a bitmap editor called QBPaint that =
+exports=20
+QBASIC-ready bitmaps.</P>
+<H2>Outline</H2>
+<P>This is the outline I used to work on this section of the book. It is =
+much=20
+more complicated than the book ended up. It discusses all the different=20
+directions you can go with sprites. In the end I decided to take the =
+shortest=20
+possible path from PUT to page-flipping.</P><PRE>- Why Sprites?
+  - Sprites are fast.
+  - Sprites aren't always the best solution.  But they usually are.
+- Data Source
+  V Screen
+    V For simple geometric sprites (circles, boxes, lines) this is =
+probably
+      the fastest and easiest.  It will make the code much smaller.
+    V For bitmap sprites (characters, textures) this is horrid.  It will =
+make
+      the code much larger.  Lots of PSET()s.  Very hard to change.
+    V Avoids files, DATA statements, and data format decisions
+    V Generate: Draw with whatever QBASIC statements you need.
+    V Load: Just do a GET, and you are done.
+    V Display: PUT
+    V Sample: Basic sprite program with a moving sprite.
+      http://www.tedfelix.com/qbasic/sprite.bas
+      Mention unusual use of an array as simply a chunk of memory.
+  V What is the alternative?
+    V Storing bitmap data in DATA statements or files.
+  - Which is best, DATA statements or files?
+    V See QBASIC book for info on DATA statements.
+    - DATA statements and files are essentially the same thing.  DATA
+      statements are just files within your program.  Instead of using
+      OPEN/INPUT/WRITE/CLOSE, we use RESTORE and READ.
+    - DATA statements make your program larger, but are easier to find.
+    - A text file is easy to edit by hand, but slower to load
+    - A binary file is hard to edit by hand, but faster to load
+  * Deciding on a "format"
+    - I think I'll gloss this over in favor of using a human readable
+	  format as much as possible.  Only change the format when needed
+	  to match the hardware.
+    - Regardless of whether you choose to store your bitmap data in=20
+      DATA statements, or files, you need to decide on a format for the
+      data.
+    - Your choices are: human-readable format, PUT format, your own =
+format,=20
+      or a standard format like .BMP.
+  - Storing data in a human-readable format
+    - Easier to edit by hand
+      - Draw what you want, then use POINT() to build the dataset.
+      - Could write a converter from a standard format
+      - May already be sprite editors available.  Pixel Art 1.0 is an =
+example.
+    - Easy to load, but slow.
+      - Render to the screen, then use GET.
+    - Don't forget the header with sizes, etc...
+    - Sample: DATA statements and human-readable data.  Moving sprite.
+  - Storing data in PUT format
+    - Harder to generate
+      - Draw what you want, do a GET, then dump the array.
+      - Could write a converter from a standard format
+      - Could easily write a converter from a "human-readable" format
+        if you can only find a sprite editor that exports that.
+      - May already be sprite editors available, if not, write one.
+    - Faster to load
+      - Get the length (LOF()), REDIM your array, then read the file =
+into=20
+        the array.
+      - You can use BLOAD to read it in very quickly.  See InitImageData =
+in
+        MiniRPG.bas from REL.  Or just read it in the old-fashioned way.
+    - Ties you to PUT?  Harder to clip.  Harder to do transparency.
+      - Look more carefully at MiniRPG.bas to see whether his data is in
+        PUT format, or in a more wasteful 16-bits per pixel format.
+    - Don't forget the header with sizes, etc...
+    - Sample: Generating the PUT file.  Reading in the PUT file.  Moving =
+sprite.
+  - Storing data in your own format
+    - ??? Necessary.  Again, look more closely at MiniRPG.bas to see =
+what
+      he is doing in there.  I have a feeling he is using a combination =
+of
+      human-readable one integer per pixel, and a binary file format.
+    - Easier to manipulate with your own PUT routine.
+    - Data can be layed out so that it is easy to clip.
+    - Data can have special values that indicate transparency.
+  - Storing data in a standard image file format
+    - Easier to use industry-standard apps to generate
+    - More complex code required.  Third-party is a good option here, =
+but
+      third-party tends to be overkill.
+    - Slower to load since there might be lots of unnecessary header =
+info.
+    - Sample: None.  You're on your own here.
+
+- Drawing
+  V PUT, already discussed above.
+  V Problems with "XOR".
+    V If there is a background, the sprite changes colors.
+    V If we don't use XOR, we make a mess in the background, and our
+      sprites can only be rectangular.
+    V Background buffering.  Do a GET before you PUT, then PUT it back.
+  V Making your sprite something other than a square or rectangle.
+    V GET and PUT only understand squares and rectangles.  So we
+      need tricks.
+    V Drawing a mask with AND, then the image with OR
+      - http://www.qbasicnews.com/tutorials.php?action=3Dview&amp;id=3D7
+        The mask can be made more simple by only having 255's in the=20
+        transparent areas, and 0's in the image areas.  When AND-ed this
+        would black out the area where the image belongs.  The border =
+could=20
+        even be included in the mask and not in the image, although that =
+would
+        be strange.  Then when you OR the image in, the areas of the =
+image that
+        are black (0) won't change the background, but the areas that =
+are
+        non-black will have a nice black background to draw on.  =
+Transparency
+        is made by a 255 in the mask and a 0 in the image.
+  - Saying goodbye to PUT()
+    V The limitations of PUT() far outweigh the advantages.
+    X When computers were slow, PUT() was great.  It is implemented in
+      assembler, so it is extremely fast, even on a very slow computer.
+      In this day and age of 3GHz+ machines, speed isn't an issue any =
+more.
+    V PUT() will not clip.  The program crashes instead.  Not good.
+    V Transparency with PUT() requires two calls to PUT(), while we can
+      do this in one shot with our own version of PUT().
+    V Transparency with PUT() requires a mask.  We can do transparency
+      without a mask and save space and work.
+    - Sample: New PUT routine that skips 0 pixel values and clips,=20
+      see Rel.Sprite() for ideas.
+    - If this isn't fast enough, you can always rewrite just this PUT()
+      routine in assembler for lightning speed.  Assembler is perfect
+      for a small time-critical routine like this.  I think the REL =
+library
+      has something like this already.
+  - Avoiding flicker
+    V Because we first remove the image in its old location/state then
+      redraw it in its new, there will be a short period when the image
+      is not visible.  This can cause flicker.
+    V Video hardware is designed to deal with this problem.  PCOPY
+    V Background buffering no longer necessary as we will be redrawing =
+the
+      entire screen each time. =20
+      - Background buffering would be faster than redrawing the whole =
+screen.
+        But maybe we need to redraw the whole screen anyway.
+    - Do we have to redraw the entire screen if we want to scroll?  Or =
+do
+      games typically use a scroll routine, or some hardware feature?
+      - Check MiniRPG.bas for clues here.
+    V Double-buffering
+    V Page-flipping
+    - Sample: Full-on final version showing all the "best" techniques.
+
+- More than one image in a file.
+  - Generating a file with more than one image.
+  - How to access each image with PUT().
+  - Sample: Simple animated sprite.
+
+http://www.qbasicnews.com/tutorials.php?action=3Dview&amp;id=3D8
+http://www.qbasicnews.com/tutorials.php?action=3Dview&amp;id=3D10
+http://www.qbasicnews.com/tutorials.php
+
+Search for qbasic sprite in google to get a good idea of the tricks =
+involved.
+Notice how this page is now number one in that search.  Not sure how =
+that
+came about.
+</PRE></BODY></HTML>
+
+------=_NextPart_000_0000_01C60883.DC671940
+Content-Type: image/jpeg
+Content-Transfer-Encoding: base64
+Content-Location: http://tedfelix.com/qbasic/zelda.jpg
+
+/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAARgAA/+4ADkFkb2JlAGTAAAAAAf/b
+AIQABAMDAwMDBAMDBAYEAwQGBwUEBAUHCAYGBwYGCAoICQkJCQgKCgwMDAwMCgwMDQ0MDBERERER
+FBQUFBQUFBQUFAEEBQUIBwgPCgoPFA4ODhQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU
+FBQUFBQUFBQUFBQUFBQUFBQU/8AAEQgAqAEAAwERAAIRAQMRAf/EAJgAAQEAAwEBAQEBAAAAAAAA
+AAAFBgcICQQDAgEBAQABBQEBAQAAAAAAAAAAAAAEAgMFBggJBwEQAAIBAwQBBQEBAAMBAQEAAAEC
+AxEEBQAhEgYiMUFREwcUFjIjFQgzYREAAgICAgEDBAECAwgBBAMAAQIREiEDACIEMRMFQVEyUqJh
+gUIjBvBxkaGxwWIzkhQVFgfh8ST/2gAMAwEAAhEDEQA/AJU+Ls7r9IscpYySDFYKxymahs7hVL3M
+1vLb43GyylTxWeyfKvcwyBWKOGCceZYfKPC8k6vE31mJUDPpa0n+8CfvHPsvyfh+/wCZ4g2Bbdi2
+JBqFMZ+kzE+k8h926ll0bB9m66f481dZNIcfbxsiLkcrLbT2eMe4hKkSrHcusCS3VLYK8sTtRyhu
+fEbnIOpoZGjBjADAvAJ9CtpqCZAIyOU/PatKt76krsS0lQwkshCWZR+QakWYCpM4YcuT4uzuv0ix
+yljJIMVgrHKZqGzuFUvczW8tvjcbLKVPFZ7J8q9zDIFYo4YJx5lhb8LyTq8TfWYlQM+lrSf7wJ+8
+cq+T8P3/ADPEGwLbsWxINQpjP0mYn0nkPu3UsujYPs3XT/HmrrJpDj7eNkRcjlZbaezxj3EJUiVY
+7l1gSW6pbBXlidqOUNz4jc5B1NDI0YMYAYF4BPoVtNQTIBGRyn57VpVvfUldiWkqGElkISzKPyDU
+izAVJnDDlyfF2d1+kWOUsZJBisFY5TNQ2dwql7ma3lt8bjZZSp4rPZPlXuYZArFHDBOPMsLfheSd
+Xib6zEqBn0taT/eBP3jlXyfh+/5niDYFt2LYkGoUxn6TMT6TyH3bqWXRsH2brp/jzV1k0hx9vGyI
+uRysttPZ4x7iEqRKsdy6wJLdUtgryxO1HKG58Rucg6mhkaMGMAMC8An0K2moJkAjI5T89q0q3vqS
+uxLSVDCSyEJZlH5BqRZgKkzhhy5Pi7O6/SLHKWMkgxWCscpmobO4VS9zNby2+NxsspU8Vnsnyr3M
+MgVijhgnHmWFvwvJOrxN9ZiVAz6WtJ/vAn7xyr5Pw/f8zxBsC27FsSDUKYz9JmJ9J5D7t1LLo2D7
+N10/x5q6yaQ4+3jZEXI5WW2ns8Y9xCVIlWO5dYEluqWwV5YnajlDc+I3OQdTQyNGDGAGBeAT6FbT
+UEyARkcp+e1aVb31JXYlpKhhJZCEsyj8g1IswFSZww5cnxdndfpFjlLGSQYrBWOUzUNncKpe5mt5
+bfG42WUqeKz2T5V7mGQKxRwwTjzLC34XknV4m+sxKgZ9LWk/3gT945V8n4fv+Z4g2Bbdi2JBqFMZ
++kzE+k8h926ll0bB9m66f481dZNIcfbxsiLkcrLbT2eMe4hKkSrHcusCS3VLYK8sTtRyhufEbnIO
+poZGjBjADAvAJ9CtpqCZAIyOU/PatKt76krsS0lQwkshCWZR+QakWYCpM4Yc771kuaDxpxxpxxpx
+xpxxpxxpxxpxzz677A0P6D3KSS6mmub3N5KWe4uZ2nZkjuGjhhpuVWNIUijT0VFTYAVPXn+kvB1e
+P8dpOtL41P8AhDDbsQe5sV3KqVGvYB/liQF2LOzYxQfFfmvIfZ5OwM9J9xfylSiN0QqgLBi6E9zB
+J1tCIAxx2QcT9ZVQ0dVZlPIMQTvUEg/HjtrefHa6+4CxDwwDLUqCo61Kqw/Yh5cMxGAAq61vFWoQ
+oKSpKm1jY5kMyn7Ap1KgHJlikHE/WVUNHVWZTyDEE71BIPx47aeO119wFiHhgGWpUFR1qVVh+xDy
+4ZiMABVbxVqEKCkqSptY2OZDMp+wKdSoByZYpBxP1lVDR1VmU8gxBO9QSD8eO2njtdfcBYh4YBlq
+VBUdalVYfsQ8uGYjAAVW8VahCgpKkqbWNjmQzKfsCnUqAcmWKQcT9ZVQ0dVZlPIMQTvUEg/Hjtp4
+7XX3AWIeGAZalQVHWpVWH7EPLhmIwAFVvFWoQoKSpKm1jY5kMyn7Ap1KgHJlikHE/WVUNHVWZTyD
+EE71BIPx47aeO119wFiHhgGWpUFR1qVVh+xDy4ZiMABVbxVqEKCkqSptY2OZDMp+wKdSoByZYpBx
+P1lVDR1VmU8gxBO9QSD8eO2njtdfcBYh4YBlqVBUdalVYfsQ8uGYjAAVW8VahCgpKkqbWNjmQzKf
+sCnUqAcmWKQcT9ZVQ0dVZlPIMQTvUEg/Hjtp47XX3AWIeGAZalQVHWpVWH7EPLhmIwAFVvFWoQoK
+SpKm1jY5kMyn7Ap1KgHJlikHE/WVUNHVWZTyDEE71BIPx47aeO119wFiHhgGWpUFR1qVVh+xDy4Z
+iMABVbxVqEKCkqSptY2OZDMp+wKdSoByZYpBxP1lVDR1VmU8gxBO9QSD8eO2njtdfcBYh4YBlqVB
+UdalVYfsQ8uGYjAAVW8VahCgpKkqbWNjmQzKfsCnUqAcmWKQcT9ZVQ0dVZlPIMQTvUEg/Hjtp47X
+X3AWIeGAZalQVHWpVWH7EPLhmIwAFVvFWoQoKSpKm1jY5kMyn7Ap1KgHJlikHE/WVUNHVWZTyDEE
+71BIPx47aeO119wFiHhgGWpUFR1qVVh+xDy4ZiMABVbxVqEKCkqSptY2OZDMp+wKdSoByZYpBxP1
+lVDR1VmU8gxBO9QSD8eO2njtdfcBYh4YBlqVBUdalVYfsQ8uGYjAAVW8VahCgpKkqbWNjmQzKfsC
+nUqAcmWKQcT9ZVQ0dVZlPIMQTvUEg/Hjtp47XX3AWIeGAZalQVHWpVWH7EPLhmIwAFVvFWoQoKSp
+Km1jY5kMyn7Ap1KgHJljsbJYN7OLsP6HjBc2maz+MkTFIslte4qx69a3tvl0jDERi5ae2t0uXna8
+jEUdzxYK0fLXn57yIi+J7ZIYy35AhyPT0Y9AR6AzHpmOdhro2bdh847gp1dVwhDIvW35KANjXiSI
+mA2AeQbrsy9t/O+u2vY1yeNkvM1/iOxwW9hcSXtnPeZy4lnx8a/yPzuY8dN4hYWYttQyeOpq/GnV
+5qBRZES0/QkA59f3zE/x5Ab5kbfjtzM1dm3ZWvqamoj0+iSLR/Ll7JYN7OLsP6HjBc2maz+MkTFI
+slte4qx69a3tvl0jDERi5ae2t0uXna8jEUdzxYK0fLUL3kRF8T2yQxlvyBDkenox6Aj0BmPTMcnr
+o2bdh847gp1dVwhDIvW35KANjXiSImA2AeQbrsy9t/O+u2vY1yeNkvM1/iOxwW9hcSXtnPeZy4ln
+x8a/yPzuY8dN4hYWYttQyeOpq/GnV5qBRZES0/QkA59f3zE/x5Ab5kbfjtzM1dm3ZWvqamoj0+iS
+LR/Ll7JYN7OLsP6HjBc2maz+MkTFIslte4qx69a3tvl0jDERi5ae2t0uXna8jEUdzxYK0fLUL3kR
+F8T2yQxlvyBDkenox6Aj0BmPTMcnro2bdh847gp1dVwhDIvW35KANjXiSImA2AeQbrsy9t/O+u2v
+Y1yeNkvM1/iOxwW9hcSXtnPeZy4lnx8a/wAj87mPHTeIWFmLbUMnjqavxp1eagUWREtP0JAOfX98
+xP8AHkBvmRt+O3MzV2bdla+pqaiPT6JItH8uXslg3s4uw/oeMFzaZrP4yRMUiyW17irHr1re2+XS
+MMRGLlp7a3S5edryMRR3PFgrR8tQveREXxPbJDGW/IEOR6ejHoCPQGY9MxyeujZt2HzjuCnV1XCE
+Mi9bfkoA2NeJIiYDYB5BuuzL238767a9jXJ42S8zX+I7HBb2FxJe2c95nLiWfHxr/I/O5jx03iFh
+Zi21DJ46mr8adXmoFFkRLT9CQDn1/fMT/HkBvmRt+O3MzV2bdla+pqaiPT6JItH8uXslg3s4uw/o
+eMFzaZrP4yRMUiyW17irHr1re2+XSMMRGLlp7a3S5edryMRR3PFgrR8tQveREXxPbJDGW/IEOR6e
+jHoCPQGY9MxyeujZt2HzjuCnV1XCEMi9bfkoA2NeJIiYDYB5BuuzL238767a9jXJ42S8zX+I7HBb
+2FxJe2c95nLiWfHxr/I/O5jx03iFhZi21DJ46mr8adXmoFFkRLT9CQDn1/fMT/HkBvmRt+O3MzV2
+bdla+pqaiPT6JItH8ud/6/ea1xpxxpxxpxxpxxpxxpxxpxzzs7HjT1/sOTw6XBmnxN7cWIuEjEAY
+WchiWQBWNC3GpHt8k67g+Nceb4as+se1v1q9WY7J92zOjBhFAGAXMQSoRFVQefvLJ8ff0cjZqcrK
+qEj26hGBU/kYJOJkBrMzGJdaRUDKeTbrTyHEbGpHoeR2B9t/bWVrbdJDdVwbdDY5FQ2WWg7MuA0I
+2dg5BmNUSvZsiOwqMG1cK1jhWyVl1wh4rSKgZTybdaeQ4jY1I9DyOwPtv7aVtukhuq4NuhsciobL
+LQdmXAaEbOwcTGqJXs2RHYVGDauFaxwrZKy64Q8VpFQMp5NutPIcRsakeh5HYH239tK23SQ3VcG3
+Q2ORUNlloOzLgNCNnYOJjVEr2bIjsKjBtXCtY4VslZdcIeK0ioGU8m3WnkOI2NSPQ8jsD7b+2lbb
+pIbquDbobHIqGyy0HZlwGhGzsHExqiV7NkR2FRg2rhWscK2SsuuEPFaRUDKeTbrTyHEbGpHoeR2B
+9t/bStt0kN1XBt0NjkVDZZaDsy4DQjZ2DiY1RK9myI7CowbVwrWOFbJWXXCHitIqBlPJt1p5DiNj
+Uj0PI7A+2/tpW26SG6rg26GxyKhsstB2ZcBoRs7BxMaolezZEdhUYNq4VrHCtkrLrhDxWkVAynk2
+608hxGxqR6Hkdgfbf20rbdJDdVwbdDY5FQ2WWg7MuA0I2dg4mNUSvZsiOwqMG1cK1jhWyVl1wh4r
+SKgZTybdaeQ4jY1I9DyOwPtv7aVtukhuq4NuhsciobLLQdmXAaEbOwcTGqJXs2RHYVGDauFaxwrZ
+Ky64Q8VpFQMp5NutPIcRsakeh5HYH239tK23SQ3VcG3Q2ORUNlloOzLgNCNnYOJjVEr2bIjsKjBt
+XCtY4VslZdcIeK0ioGU8m3WnkOI2NSPQ8jsD7b+2lbbpIbquDbobHIqGyy0HZlwGhGzsHExqiV7N
+kR2FRg2rhWscK2SsuuEPFaRUDKeTbrTyHEbGpHoeR2B9t/bStt0kN1XBt0NjkVDZZaDsy4DQjZ2D
+iY1RK9myI7CowbVwrWOFbJWXXCHitIqBlPJt1p5DiNjUj0PI7A+2/tpW26SG6rg26GxyKhsstB2Z
+cBoRs7BxMaolezZEdhUYNq4VrHCtkrLrhDxWkVAynk2608hxGxqR6Hkdgfbf20rbdJDdVwbdDY5F
+Q2WWg7MuA0I2dg4mNUSvZsiOwqMG1cK1jhWyVl1wh5sifF2d1+kWOUsZJBisFY5TNQ2dwql7ma3l
+t8bjZZSp4rPZPlXuYZArFHDBOPMsPPTwvJOrxN9ZiVAz6WtJ/vAn7xzs/wCT8P3/ADPEGwLbsWxI
+NQpjP0mYn0nkPu3UsujYPs3XT/HmrrJpDj7eNkRcjlZbaezxj3EJUiVY7l1gSW6pbBXlidqOUNz4
+jc5B1NDI0YMYAYF4BPoVtNQTIBGRyn57VpVvfUldiWkqGElkISzKPyDUizAVJnDDlyfF2d1+kWOU
+sZJBisFY5TNQ2dwql7ma3lt8bjZZSp4rPZPlXuYZArFHDBOPMsLfheSdXib6zEqBn0taT/eBP3jl
+Xyfh+/5niDYFt2LYkGoUxn6TMT6TyH3bqWXRsH2brp/jzV1k0hx9vGyIuRysttPZ4x7iEqRKsdy6
+wJLdUtgryxO1HKG58Rucg6mhkaMGMAMC8An0K2moJkAjI5T89q0q3vqSuxLSVDCSyEJZlH5BqRZg
+Kkzhhy5Pi7O6/SLHKWMkgxWCscpmobO4VS9zNby2+NxsspU8Vnsnyr3MMgVijhgnHmWFvwvJOrxN
+9ZiVAz6WtJ/vAn7xyr5Pw/f8zxBsC27FsSDUKYz9JmJ9J5D7t1LLo2D7N10/x5q6yaQ4+3jZEXI5
+WW2ns8Y9xCVIlWO5dYEluqWwV5YnajlDc+I3OQdTQyNGDGAGBeAT6FbTUEyARkcp+e1aVb31JXYl
+pKhhJZCEsyj8g1IswFSZww5cnxdndfpFjlLGSQYrBWOUzUNncKpe5mt5bfG42WUqeKz2T5V7mGQK
+xRwwTjzLC34XknV4m+sxKgZ9LWk/3gT945V8n4fv+Z4g2Bbdi2JBqFMZ+kzE+k8h926ll0bB9m66
+f481dZNIcfbxsiLkcrLbT2eMe4hKkSrHcusCS3VLYK8sTtRyhufEbnIOpoZGjBjADAvAJ9CtpqCZ
+AIyOU/PatKt76krsS0lQwkshCWZR+QakWYCpM4Ycyrvz8v1TN4eRmusLlxlZZ7C8WGWON7S4t4HW
+MpFGTHMbiRnSXnTxANAeUDdWrbFFWRwJBMmbmf7FesR/WTnmS8G0atTm6bNRMECBX2xA+8h+1iZP
+pUY5iH5f+a3n7R+R9C6dBirw4S2DLnOwSQi0trOJc9fXMptZ7pKTzPbl4ka0jmVJGCzfWCdbj5Sv
+q+QO8EABYict1+w+gMHtH9J5858bydLfFnxyCXZ7AxhcrmT9SLDrP9YB56Aax/IvGnHGnHGnHGnH
+GnHGnHGnHPPrvsDQ/oPcpJLqaa5vc3kpZ7i5nadmSO4aOGGm5VY0hSKNPRUVNgBU9ef6S8HV4/x2
+k60vjU/4Qw27EHubFdyqlRr2Af5YkBdizs2MUHxX5ryH2eTsDPSfcX8pUojdEKoCwYuhPcwSdbQi
+AMcdkHE/WVUNHVWZTyDEE71BIPx47a3nx2uvuAsQ8MAy1KgqOtSqsP2IeXDMRgAKutbxVqEKCkqS
+ptY2OZDMp+wKdSoByZYpBxP1lVDR1VmU8gxBO9QSD8eO2njtdfcBYh4YBlqVBUdalVYfsQ8uGYjA
+AVW8VahCgpKkqbWNjmQzKfsCnUqAcmWKQcT9ZVQ0dVZlPIMQTvUEg/Hjtp47XX3AWIeGAZalQVHW
+pVWH7EPLhmIwAFVvFWoQoKSpKm1jY5kMyn7Ap1KgHJlikHE/WVUNHVWZTyDEE71BIPx47aeO119w
+FiHhgGWpUFR1qVVh+xDy4ZiMABVbxVqEKCkqSptY2OZDMp+wKdSoByZYpBxP1lVDR1VmU8gxBO9Q
+SD8eO2njtdfcBYh4YBlqVBUdalVYfsQ8uGYjAAVW8VahCgpKkqbWNjmQzKfsCnUqAcmWKQcT9ZVQ
+0dVZlPIMQTvUEg/Hjtp47XX3AWIeGAZalQVHWpVWH7EPLhmIwAFVvFWoQoKSpKm1jY5kMyn7Ap1K
+gHJlikHE/WVUNHVWZTyDEE71BIPx47aeO119wFiHhgGWpUFR1qVVh+xDy4ZiMABVbxVqEKCkqSpt
+Y2OZDMp+wKdSoByZYpBxP1lVDR1VmU8gxBO9QSD8eO2njtdfcBYh4YBlqVBUdalVYfsQ8uGYjAAV
+W8VahCgpKkqbWNjmQzKfsCnUqAcmWKQcT9ZVQ0dVZlPIMQTvUEg/Hjtp47XX3AWIeGAZalQVHWpV
+WH7EPLhmIwAFVvFWoQoKSpKm1jY5kMyn7Ap1KgHJlikHE/WVUNHVWZTyDEE71BIPx47aeO119wFi
+HhgGWpUFR1qVVh+xDy4ZiMABVbxVqEKCkqSptY2OZDMp+wKdSoByZYpBxP1lVDR1VmU8gxBO9QSD
+8eO2njtdfcBYh4YBlqVBUdalVYfsQ8uGYjAAVW8VahCgpKkqbWNjmQzKfsCnUqAcmWKQcT9ZVQ0d
+VZlPIMQTvUEg/Hjtp47XX3AWIeGAZalQVHWpVWH7EPLhmIwAFVvFWoQoKSpKm1jY5kMyn7Ap1KgH
+JlikHE/WVUNHVWZTyDEE71BIPx47aeO119wFiHhgGWpUFR1qVVh+xDy4ZiMABVbxVqEKCkqSptY2
+OZDMp+wKdSoByZY7GyWDezi7D+h4wXNpms/jJExSLJbXuKsevWt7b5dIwxEYuWntrdLl52vIxFHc
+8WCtHy15+e8iIvie2SGMt+QIcj09GPQEegMx6ZjnYa6Nm3YfOO4KdXVcIQyL1t+SgDY14kiJgNgH
+kG67Mvbfzvrtr2NcnjZLzNf4jscFvYXEl7Zz3mcuJZ8fGv8AI/O5jx03iFhZi21DJ46mr8adXmoF
+FkRLT9CQDn1/fMT/AB5Ab5kbfjtzM1dm3ZWvqamoj0+iSLR/Ll7JYN7OLsP6HjBc2maz+MkTFIsl
+te4qx69a3tvl0jDERi5ae2t0uXna8jEUdzxYK0fLUL3kRF8T2yQxlvyBDkenox6Aj0BmPTMcnro2
+bdh847gp1dVwhDIvW35KANjXiSImA2AeQbrsy9t/O+u2vY1yeNkvM1/iOxwW9hcSXtnPeZy4lnx8
+a/yPzuY8dN4hYWYttQyeOpq/GnV5qBRZES0/QkA59f3zE/x5Ab5kbfjtzM1dm3ZWvqamoj0+iSLR
+/Ll7JYN7OLsP6HjBc2maz+MkTFIslte4qx69a3tvl0jDERi5ae2t0uXna8jEUdzxYK0fLUL3kRF8
+T2yQxlvyBDkenox6Aj0BmPTMcnro2bdh847gp1dVwhDIvW35KANjXiSImA2AeQbrsy9t/O+u2vY1
+yeNkvM1/iOxwW9hcSXtnPeZy4lnx8a/yPzuY8dN4hYWYttQyeOpq/GnV5qBRZES0/QkA59f3zE/x
+5Ab5kbfjtzM1dm3ZWvqamoj0+iSLR/Ll7JYN7OLsP6HjBc2maz+MkTFIslte4qx69a3tvl0jDERi
+5ae2t0uXna8jEUdzxYK0fLUL3kRF8T2yQxlvyBDkenox6Aj0BmPTMcnro2bdh847gp1dVwhDIvW3
+5KANjXiSImA2AeQbrsy9t/O+u2vY1yeNkvM1/iOxwW9hcSXtnPeZy4lnx8a/yPzuY8dN4hYWYttQ
+yeOpq/GnV5qBRZES0/QkA59f3zE/x5Ab5kbfjtzM1dm3ZWvqamoj0+iSLR/LmRdh/M/179Et8Nlc
+f1a6ku8/1t8dncnlWgw62+Yy6WUeQmuLW4aO6RYp4bmUrDaFWHH6QyMCK08VE3ubAKNqOPVpChjj
+6ZLAZOM/3in5afFRCCz+zs1n0AFyoH/xVZwM4+5I7A6V1z/H9N671L+n+3/wcZZYr+zh9P3fw26Q
+fZ9fJ+PLhy48jT0qdVbXu5b7meYJFqoH25d1b5VxpxxpxxpxxpxxpxzXmb/WcdiJv4xi7tslEzC8
+sp+EUkSxnz/4GXkeFJVP/wCbIaiSoI1id/yK6zFTP9cf88/8vvzZPH+C2bRa61PoRkGfT1j69T/i
+Df4YzxhP1nHZeb+M4u7XJSsos7KDhLJKsh8P+Zi4nhWVj/8AmqCpkqQNNHyK7DFTP9M/88f8/tx5
+HwWzULXWo9ScAR6+k/XqP8Rb/DGecX9jxp6/2HJ4dLgzT4m9uLEXCRiAMLOQxLIArGhbjUj2+Sdd
+7fGuPN8NWfWPa361erMdk+7ZnRgwigDALmIJUIiqoPLXlk+Pv6ORs1OVlVCR7dQjAqfyMEnEyA1m
+ZjEutIqBlPJt1p5DiNjUj0PI7A+2/trK1tukhuq4NuhsciobLLQdmXAaEbOwcgzGqJXs2RHYVGDa
+uFaxwrZKy64Q8VpFQMp5NutPIcRsakeh5HYH239tK23SQ3VcG3Q2ORUNlloOzLgNCNnYOJjVEr2b
+IjsKjBtXCtY4VslZdcIeK0ioGU8m3WnkOI2NSPQ8jsD7b+2lbbpIbquDbobHIqGyy0HZlwGhGzsH
+ExqiV7NkR2FRg2rhWscK2SsuuEPFaRUDKeTbrTyHEbGpHoeR2B9t/bStt0kN1XBt0NjkVDZZaDsy
+4DQjZ2DiY1RK9myI7CowbVwrWOFbJWXXCHitIqBlPJt1p5DiNjUj0PI7A+2/tpW26SG6rg26GxyK
+hsstB2ZcBoRs7BxMaolezZEdhUYNq4VrHCtkrLrhDxWkVAynk2608hxGxqR6Hkdgfbf20rbdJDdV
+wbdDY5FQ2WWg7MuA0I2dg4mNUSvZsiOwqMG1cK1jhWyVl1wh4rSKgZTybdaeQ4jY1I9DyOwPtv7a
+Vtukhuq4NuhsciobLLQdmXAaEbOwcTGqJXs2RHYVGDauFaxwrZKy64Q8VpFQMp5NutPIcRsakeh5
+HYH239tK23SQ3VcG3Q2ORUNlloOzLgNCNnYOJjVEr2bIjsKjBtXCtY4VslZdcIeK0ioGU8m3WnkO
+I2NSPQ8jsD7b+2lbbpIbquDbobHIqGyy0HZlwGhGzsHExqiV7NkR2FRg2rhWscK2SsuuEPFaRUDK
+eTbrTyHEbGpHoeR2B9t/bStt0kN1XBt0NjkVDZZaDsy4DQjZ2DiY1RK9myI7CowbVwrWOFbJWXXC
+HitIqBlPJt1p5DiNjUj0PI7A+2/tpW26SG6rg26GxyKhsstB2ZcBoRs7BxMaolezZEdhUYNq4VrH
+CtkrLrhDxWkVAynk2608hxGxqR6Hkdgfbf20rbdJDdVwbdDY5FQ2WWg7MuA0I2dg4mNUSvZsiOwq
+MG1cK1jhWyVl1wh4rSKgZTybdaeQ4jY1I9DyOwPtv7aVtukhuq4NuhsciobLLQdmXAaEbOwcTGqJ
+Xs2RHYVGDauFaxwrZKy64Q82RPi7O6/SLHKWMkgxWCscpmobO4VS9zNby2+NxsspU8Vnsnyr3MMg
+VijhgnHmWHnp4XknV4m+sxKgZ9LWk/3gT9452f8AJ+H7/meINgW3YtiQahTGfpMxPpPIfdupZdGw
+fZuun+PNXWTSHH28bIi5HKy209njHuISpEqx3LrAkt1S2CvLE7UcobnxG5yDqaGRowYwAwLwCfQr
+aagmQCMjlPz2rSre+pK7EtJUMJLIQlmUfkGpFmAqTOGHLk+Ls7r9IscpYySDFYKxymahs7hVL3M1
+vLb43GyylTxWeyfKvcwyBWKOGCceZYW/C8k6vE31mJUDPpa0n+8CfvHKvk/D9/zPEGwLbsWxINQp
+jP0mYn0nkPu3UsujYPs3XT/HmrrJpDj7eNkRcjlZbaezxj3EJUiVY7l1gSW6pbBXlidqOUNz4jc5
+B1NDI0YMYAYF4BPoVtNQTIBGRyn57VpVvfUldiWkqGElkISzKPyDUizAVJnDDlyfF2d1+kWOUsZJ
+BisFY5TNQ2dwql7ma3lt8bjZZSp4rPZPlXuYZArFHDBOPMsLfheSdXib6zEqBn0taT/eBP3jlXyf
+h+/5niDYFt2LYkGoUxn6TMT6TyH3bqWXRsH2brp/jzV1k0hx9vGyIuRysttPZ4x7iEqRKsdy6wJL
+dUtgryxO1HKG58Rucg6mhkaMGMAMC8An0K2moJkAjI5T89q0q3vqSuxLSVDCSyEJZlH5BqRZgKkz
+hhy5Pi7O6/SLHKWMkgxWCscpmobO4VS9zNby2+NxsspU8Vnsnyr3MMgVijhgnHmWFvwvJOrxN9Zi
+VAz6WtJ/vAn7xyr5Pw/f8zxBsC27FsSDUKYz9JmJ9J5D7t1LLo2D7N10/wAeausmkOPt42RFyOVl
+tp7PGPcQlSJVjuXWBJbqlsFeWJ2o5Q3PiNzkHU0MjRgxgBgXgE+hW01BMgEZHKfntWlW99SV2JaS
+oYSWQhLMo/INSLMBUmcMOd96yXNB4044044044044044044045qCLCYW0vclg8vjcPB9+Xx19lSs
+twbSHEz/AHRtB/QyRLazRH/vU/bF9vPgoK0iaD4+rRJR1SS6kkzFDMi2KEfl+S29M/idzfydzqm3
+W+wxrdUwtjsFTask7Fb8T1asWJBlwlwmFu73G4PEY3Dz/Rl8jfYotLcC0mxMH0xrB/QqSrdTSn/v
+Y/bL9XDgwC1iV5GrRIRFSQ7EETFBEC2bk/l+TV9MfiCeTuRX27H2CdaK+FsNhsbVkHWq/iOq2mwJ
+MOeWe+wND+g9ykkupprm9zeSlnuLmdp2ZI7ho4YablVjSFIo09FRU2AFT2V/pLwdXj/HaTrS+NT/
+AIQw27EHubFdyqlRr2Af5YkBdizs2MUHMXzXkPs8nYGek+4v5SpRG6IVQFgxdCe5gk62hEAY47IO
+J+sqoaOqsynkGIJ3qCQfjx21vPjtdfcBYh4YBlqVBUdalVYfsQ8uGYjAAVda3irUIUFJUlTaxscy
+GZT9gU6lQDkyxSDifrKqGjqrMp5BiCd6gkH48dtPHa6+4CxDwwDLUqCo61Kqw/Yh5cMxGAAqt4q1
+CFBSVJU2sbHMhmU/YFOpUA5MsUg4n6yqho6qzKeQYgneoJB+PHbTx2uvuAsQ8MAy1KgqOtSqsP2I
+eXDMRgAKreKtQhQUlSVNrGxzIZlP2BTqVAOTLFIOJ+sqoaOqsynkGIJ3qCQfjx208drr7gLEPDAM
+tSoKjrUqrD9iHlwzEYACq3irUIUFJUlTaxscyGZT9gU6lQDkyxSDifrKqGjqrMp5BiCd6gkH48dt
+PHa6+4CxDwwDLUqCo61Kqw/Yh5cMxGAAqt4q1CFBSVJU2sbHMhmU/YFOpUA5MsUg4n6yqho6qzKe
+QYgneoJB+PHbTx2uvuAsQ8MAy1KgqOtSqsP2IeXDMRgAKreKtQhQUlSVNrGxzIZlP2BTqVAOTLFI
+OJ+sqoaOqsynkGIJ3qCQfjx208drr7gLEPDAMtSoKjrUqrD9iHlwzEYACq3irUIUFJUlTaxscyGZ
+T9gU6lQDkyxSDifrKqGjqrMp5BiCd6gkH48dtPHa6+4CxDwwDLUqCo61Kqw/Yh5cMxGAAqt4q1CF
+BSVJU2sbHMhmU/YFOpUA5MsUg4n6yqho6qzKeQYgneoJB+PHbTx2uvuAsQ8MAy1KgqOtSqsP2IeX
+DMRgAKreKtQhQUlSVNrGxzIZlP2BTqVAOTLFIOJ+sqoaOqsynkGIJ3qCQfjx208drr7gLEPDAMtS
+oKjrUqrD9iHlwzEYACq3irUIUFJUlTaxscyGZT9gU6lQDkyxSDifrKqGjqrMp5BiCd6gkH48dtPH
+a6+4CxDwwDLUqCo61Kqw/Yh5cMxGAAqt4q1CFBSVJU2sbHMhmU/YFOpUA5MsUg4n6yqho6qzKeQY
+gneoJB+PHbTx2uvuAsQ8MAy1KgqOtSqsP2IeXDMRgAKreKtQhQUlSVNrGxzIZlP2BTqVAOTLFIOJ
++sqoaOqsynkGIJ3qCQfjx208drr7gLEPDAMtSoKjrUqrD9iHlwzEYACq3irUIUFJUlTaxscyGZT9
+gU6lQDkyx2NksG9nF2H9DxgubTNZ/GSJikWS2vcVY9etb23y6RhiIxctPbW6XLzteRiKO54sFaPl
+rz895ERfE9skMZb8gQ5Hp6MegI9AZj0zHOw10bNuw+cdwU6uq4QhkXrb8lAGxrxJETAbAPIN12Ze
+2/nfXbXsa5PGyXma/wAR2OC3sLiS9s57zOXEs+PjX+R+dzHjpvELCzFtqGTx1NX406vNQKLIiWn6
+EgHPr++Yn+PIDfMjb8duZmrs27K19TU1Een0SRaP5cvZLBvZxdh/Q8YLm0zWfxkiYpFktr3FWPXr
+W9t8ukYYiMXLT21uly87XkYijueLBWj5ahe8iIvie2SGMt+QIcj09GPQEegMx6Zjk9dGzbsPnHcF
+OrquEIZF62/JQBsa8SREwGwDyDddmXtv531217GuTxsl5mv8R2OC3sLiS9s57zOXEs+PjX+R+dzH
+jpvELCzFtqGTx1NX406vNQKLIiWn6EgHPr++Yn+PIDfMjb8duZmrs27K19TU1Een0SRaP5cvZLBv
+Zxdh/Q8YLm0zWfxkiYpFktr3FWPXrW9t8ukYYiMXLT21uly87XkYijueLBWj5ahe8iIvie2SGMt+
+QIcj09GPQEegMx6Zjk9dGzbsPnHcFOrquEIZF62/JQBsa8SREwGwDyDddmXtv531217GuTxsl5mv
+8R2OC3sLiS9s57zOXEs+PjX+R+dzHjpvELCzFtqGTx1NX406vNQKLIiWn6EgHPr++Yn+PIDfMjb8
+duZmrs27K19TU1Een0SRaP5cvZLBvZxdh/Q8YLm0zWfxkiYpFktr3FWPXrW9t8ukYYiMXLT21uly
+87XkYijueLBWj5ahe8iIvie2SGMt+QIcj09GPQEegMx6Zjk9dGzbsPnHcFOrquEIZF62/JQBsa8S
+REwGwDyDddmXtv531217GuTxsl5mv8R2OC3sLiS9s57zOXEs+PjX+R+dzHjpvELCzFtqGTx1NX40
+6vNQKLIiWn6EgHPr++Yn+PIDfMjb8duZmrs27K19TU1Een0SRaP5c7/1+81rjTjjTjjTjjTjjTjj
+TjjTjkjPdZwvZoYbfN27XUEDGSOITTRJzIpyIidQSBsC3pU09Tqxt0psEMJ5N8XzdvjEnUak/wBA
+f+oPGB6zheswzW+Et2tYJ2EkkRmmlTmBTkBK7AEjYlfWgr6DTVpTWIURx5Xm7fJIO02I/oB/0A5w
+H2PGnr/Ycnh0uDNPib24sRcJGIAws5DEsgCsaFuNSPb5J13P8a483w1Z9Y9rfrV6sx2T7tmdGDCK
+AMAuYglQiKqg84+WT4+/o5GzU5WVUJHt1CMCp/IwScTIDWZmMS60ioGU8m3WnkOI2NSPQ8jsD7b+
+2srW26SG6rg26GxyKhsstB2ZcBoRs7ByDMaolezZEdhUYNq4VrHCtkrLrhDxWkVAynk2608hxGxq
+R6Hkdgfbf20rbdJDdVwbdDY5FQ2WWg7MuA0I2dg4mNUSvZsiOwqMG1cK1jhWyVl1wh4rSKgZTybd
+aeQ4jY1I9DyOwPtv7aVtukhuq4NuhsciobLLQdmXAaEbOwcTGqJXs2RHYVGDauFaxwrZKy64Q8Vp
+FQMp5NutPIcRsakeh5HYH239tK23SQ3VcG3Q2ORUNlloOzLgNCNnYOJjVEr2bIjsKjBtXCtY4Vsl
+ZdcIeK0ioGU8m3WnkOI2NSPQ8jsD7b+2lbbpIbquDbobHIqGyy0HZlwGhGzsHExqiV7NkR2FRg2r
+hWscK2SsuuEPFaRUDKeTbrTyHEbGpHoeR2B9t/bStt0kN1XBt0NjkVDZZaDsy4DQjZ2DiY1RK9my
+I7CowbVwrWOFbJWXXCHitIqBlPJt1p5DiNjUj0PI7A+2/tpW26SG6rg26GxyKhsstB2ZcBoRs7Bx
+MaolezZEdhUYNq4VrHCtkrLrhDxWkVAynk2608hxGxqR6Hkdgfbf20rbdJDdVwbdDY5FQ2WWg7Mu
+A0I2dg4mNUSvZsiOwqMG1cK1jhWyVl1wh4rSKgZTybdaeQ4jY1I9DyOwPtv7aVtukhuq4Nuhscio
+bLLQdmXAaEbOwcTGqJXs2RHYVGDauFaxwrZKy64Q8VpFQMp5NutPIcRsakeh5HYH239tK23SQ3Vc
+G3Q2ORUNlloOzLgNCNnYOJjVEr2bIjsKjBtXCtY4VslZdcIeK0ioGU8m3WnkOI2NSPQ8jsD7b+2l
+bbpIbquDbobHIqGyy0HZlwGhGzsHExqiV7NkR2FRg2rhWscK2SsuuEPFaRUDKeTbrTyHEbGpHoeR
+2B9t/bStt0kN1XBt0NjkVDZZaDsy4DQjZ2DiY1RK9myI7CowbVwrWOFbJWXXCHitIqBlPJt1p5Di
+NjUj0PI7A+2/tpW26SG6rg26GxyKhsstB2ZcBoRs7BxMaolezZEdhUYNq4VrHCtkrLrhDzZE+Ls7
+r9IscpYySDFYKxymahs7hVL3M1vLb43GyylTxWeyfKvcwyBWKOGCceZYeenheSdXib6zEqBn0taT
+/eBP3jnZ/wAn4fv+Z4g2Bbdi2JBqFMZ+kzE+k8h926ll0bB9m66f481dZNIcfbxsiLkcrLbT2eMe
+4hKkSrHcusCS3VLYK8sTtRyhufEbnIOpoZGjBjADAvAJ9CtpqCZAIyOU/PatKt76krsS0lQwkshC
+WZR+QakWYCpM4YcuT4uzuv0ixyljJIMVgrHKZqGzuFUvczW8tvjcbLKVPFZ7J8q9zDIFYo4YJx5l
+hb8LyTq8TfWYlQM+lrSf7wJ+8cq+T8P3/M8QbAtuxbEg1CmM/SZifSeQ+7dSy6Ng+zddP8eausmk
+OPt42RFyOVltp7PGPcQlSJVjuXWBJbqlsFeWJ2o5Q3PiNzkHU0MjRgxgBgXgE+hW01BMgEZHKfnt
+WlW99SV2JaSoYSWQhLMo/INSLMBUmcMOXJ8XZ3X6RY5SxkkGKwVjlM1DZ3CqXuZreW3xuNllKnis
+9k+Ve5hkCsUcME48ywt+F5J1eJvrMSoGfS1pP94E/eOVfJ+H7/meINgW3YtiQahTGfpMxPpPIfdu
+pZdGwfZuun+PNXWTSHH28bIi5HKy209njHuISpEqx3LrAkt1S2CvLE7UcobnxG5yDqaGRowYwAwL
+wCfQraagmQCMjlPz2rSre+pK7EtJUMJLIQlmUfkGpFmAqTOGHLk+Ls7r9IscpYySDFYKxymahs7h
+VL3M1vLb43GyylTxWeyfKvcwyBWKOGCceZYW/C8k6vE31mJUDPpa0n+8CfvHKvk/D9/zPEGwLbsW
+xINQpjP0mYn0nkPu3UsujYPs3XT/AB5q6yaQ4+3jZEXI5WW2ns8Y9xCVIlWO5dYEluqWwV5Ynajl
+Dc+I3OQdTQyNGDGAGBeAT6FbTUEyARkcp+e1aVb31JXYlpKhhJZCEsyj8g1IswFSZww533rJc0Hj
+TjjTjjTjjTjjTjjTjjTjjTjjTjnn132Bof0HuUkl1NNc3ubyUs9xcztOzJHcNHDDTcqsaQpFGnoq
+KmwAqevP9JeDq8f47SdaXxqf8IYbdiD3Niu5VSo17AP8sSAuxZ2bGKD4r815D7PJ2BnpPuL+UqUR
+uiFUBYMXQnuYJOtoRAGOOyDifrKqGjqrMp5BiCd6gkH48dtbz47XX3AWIeGAZalQVHWpVWH7EPLh
+mIwAFXWt4q1CFBSVJU2sbHMhmU/YFOpUA5MsUg4n6yqho6qzKeQYgneoJB+PHbTx2uvuAsQ8MAy1
+KgqOtSqsP2IeXDMRgAKreKtQhQUlSVNrGxzIZlP2BTqVAOTLFIOJ+sqoaOqsynkGIJ3qCQfjx208
+drr7gLEPDAMtSoKjrUqrD9iHlwzEYACq3irUIUFJUlTaxscyGZT9gU6lQDkyxSDifrKqGjqrMp5B
+iCd6gkH48dtPHa6+4CxDwwDLUqCo61Kqw/Yh5cMxGAAqt4q1CFBSVJU2sbHMhmU/YFOpUA5MsUg4
+n6yqho6qzKeQYgneoJB+PHbTx2uvuAsQ8MAy1KgqOtSqsP2IeXDMRgAKreKtQhQUlSVNrGxzIZlP
+2BTqVAOTLFIOJ+sqoaOqsynkGIJ3qCQfjx208drr7gLEPDAMtSoKjrUqrD9iHlwzEYACq3irUIUF
+JUlTaxscyGZT9gU6lQDkyxSDifrKqGjqrMp5BiCd6gkH48dtPHa6+4CxDwwDLUqCo61Kqw/Yh5cM
+xGAAqt4q1CFBSVJU2sbHMhmU/YFOpUA5MsUg4n6yqho6qzKeQYgneoJB+PHbTx2uvuAsQ8MAy1Kg
+qOtSqsP2IeXDMRgAKreKtQhQUlSVNrGxzIZlP2BTqVAOTLFIOJ+sqoaOqsynkGIJ3qCQfjx208dr
+r7gLEPDAMtSoKjrUqrD9iHlwzEYACq3irUIUFJUlTaxscyGZT9gU6lQDkyxSDifrKqGjqrMp5BiC
+d6gkH48dtPHa6+4CxDwwDLUqCo61Kqw/Yh5cMxGAAqt4q1CFBSVJU2sbHMhmU/YFOpUA5MsUg4n6
+yqho6qzKeQYgneoJB+PHbTx2uvuAsQ8MAy1KgqOtSqsP2IeXDMRgAKreKtQhQUlSVNrGxzIZlP2B
+TqVAOTLFIOJ+sqoaOqsynkGIJ3qCQfjx208drr7gLEPDAMtSoKjrUqrD9iHlwzEYACq3irUIUFJU
+lTaxscyGZT9gU6lQDkyxSDifrKqGjqrMp5BiCd6gkH48dtPHa6+4CxDwwDLUqCo61Kqw/Yh5cMxG
+AAqt4q1CFBSVJU2sbHMhmU/YFOpUA5MsdjZLBvZxdh/Q8YLm0zWfxkiYpFktr3FWPXrW9t8ukYYi
+MXLT21uly87XkYijueLBWj5a8/PeREXxPbJDGW/IEOR6ejHoCPQGY9MxzsNdGzbsPnHcFOrquEIZ
+F62/JQBsa8SREwGwDyDddmXtv531217GuTxsl5mv8R2OC3sLiS9s57zOXEs+PjX+R+dzHjpvELCz
+FtqGTx1NX406vNQKLIiWn6EgHPr++Yn+PIDfMjb8duZmrs27K19TU1Een0SRaP5cvZLBvZxdh/Q8
+YLm0zWfxkiYpFktr3FWPXrW9t8ukYYiMXLT21uly87XkYijueLBWj5ahe8iIvie2SGMt+QIcj09G
+PQEegMx6Zjk9dGzbsPnHcFOrquEIZF62/JQBsa8SREwGwDyDddmXtv531217GuTxsl5mv8R2OC3s
+LiS9s57zOXEs+PjX+R+dzHjpvELCzFtqGTx1NX406vNQKLIiWn6EgHPr++Yn+PIDfMjb8duZmrs2
+7K19TU1Een0SRaP5cvZLBvZxdh/Q8YLm0zWfxkiYpFktr3FWPXrW9t8ukYYiMXLT21uly87XkYij
+ueLBWj5ahe8iIvie2SGMt+QIcj09GPQEegMx6Zjk9dGzbsPnHcFOrquEIZF62/JQBsa8SREwGwDy
+DddmXtv531217GuTxsl5mv8AEdjgt7C4kvbOe8zlxLPj41/kfncx46bxCwsxbahk8dTV+NOrzUCi
+yIlp+hIBz6/vmJ/jyA3zI2/HbmZq7NuytfU1NRHp9EkWj+XL2Swb2cXYf0PGC5tM1n8ZImKRZLa9
+xVj161vbfLpGGIjFy09tbpcvO15GIo7niwVo+WoXvIiL4ntkhjLfkCHI9PRj0BHoDMemY5PXRs27
+D5x3BTq6rhCGRetvyUAbGvEkRMBsA8g3XZl7b+d9dtexrk8bJeZr/Edjgt7C4kvbOe8zlxLPj41/
+kfncx46bxCwsxbahk8dTV+NOrzUCiyIlp+hIBz6/vmJ/jyA3zI2/HbmZq7NuytfU1NRHp9EkWj+X
+O/8AX7zWuNOONOONOONOONOONOONOONOONOOednY8aev9hyeHS4M0+JvbixFwkYgDCzkMSyAKxoW
+41I9vknXcHxrjzfDVn1j2t+tXqzHZPu2Z0YMIoAwC5iCVCIqqDz95ZPj7+jkbNTlZVQke3UIwKn8
+jBJxMgNZmYxLrSKgZTybdaeQ4jY1I9DyOwPtv7aytbbpIbquDbobHIqGyy0HZlwGhGzsHIMxqiV7
+NkR2FRg2rhWscK2SsuuEPFaRUDKeTbrTyHEbGpHoeR2B9t/bStt0kN1XBt0NjkVDZZaDsy4DQjZ2
+DiY1RK9myI7CowbVwrWOFbJWXXCHitIqBlPJt1p5DiNjUj0PI7A+2/tpW26SG6rg26GxyKhsstB2
+ZcBoRs7BxMaolezZEdhUYNq4VrHCtkrLrhDxWkVAynk2608hxGxqR6Hkdgfbf20rbdJDdVwbdDY5
+FQ2WWg7MuA0I2dg4mNUSvZsiOwqMG1cK1jhWyVl1wh4rSKgZTybdaeQ4jY1I9DyOwPtv7aVtukhu
+q4NuhsciobLLQdmXAaEbOwcTGqJXs2RHYVGDauFaxwrZKy64Q8VpFQMp5NutPIcRsakeh5HYH239
+tK23SQ3VcG3Q2ORUNlloOzLgNCNnYOJjVEr2bIjsKjBtXCtY4VslZdcIeK0ioGU8m3WnkOI2NSPQ
+8jsD7b+2lbbpIbquDbobHIqGyy0HZlwGhGzsHExqiV7NkR2FRg2rhWscK2SsuuEPFaRUDKeTbrTy
+HEbGpHoeR2B9t/bStt0kN1XBt0NjkVDZZaDsy4DQjZ2DiY1RK9myI7CowbVwrWOFbJWXXCHitIqB
+lPJt1p5DiNjUj0PI7A+2/tpW26SG6rg26GxyKhsstB2ZcBoRs7BxMaolezZEdhUYNq4VrHCtkrLr
+hDz5RkbEpDGtzEzXV1FZwoKFnnm4iEI1N1kEgdCp4slH/wCFG1rX/wCS/GnQfPOwjQikXlqyT2T2
+h39xKAm2uyq3QwdnM5/9k80bR4YQHa7DpifTqw2fjR74rsqxEsMIeDkbFEmjNzFyhupbO5Q05RT2
+vISB2I8VUB3c14hFLt4Dlp/+S/GtoHn+4fYCgK8tVi5/D2h3OwVUi2u1X6Ehn4/+yeau0+HQe7Y2
+TErQfkdh6hOzTGyspLgVQ8+qtIqBlPJt1p5DiNjUj0PI7A+2/trZa23SQ3VcG3Q2ORUNlloOzLgN
+CNnYOYOY1RK9myI7CowbVwrWOFbJWXXCHitIqBlPJt1p5DiNjUj0PI7A+2/tpW26SG6rg26GxyKh
+sstB2ZcBoRs7BxMaolezZEdhUYNq4VrHCtkrLrhDzZE+Ls7r9IscpYySDFYKxymahs7hVL3M1vLb
+43GyylTxWeyfKvcwyBWKOGCceZYeenheSdXib6zEqBn0taT/AHgT9452f8n4fv8AmeINgW3YtiQa
+hTGfpMxPpPIfdupZdGwfZuun+PNXWTSHH28bIi5HKy209njHuISpEqx3LrAkt1S2CvLE7UcobnxG
+5yDqaGRowYwAwLwCfQraagmQCMjlPz2rSre+pK7EtJUMJLIQlmUfkGpFmAqTOGHLk+Ls7r9IscpY
+ySDFYKxymahs7hVL3M1vLb43GyylTxWeyfKvcwyBWKOGCceZYW/C8k6vE31mJUDPpa0n+8CfvHKv
+k/D9/wAzxBsC27FsSDUKYz9JmJ9J5D7t1LLo2D7N10/x5q6yaQ4+3jZEXI5WW2ns8Y9xCVIlWO5d
+YEluqWwV5YnajlDc+I3OQdTQyNGDGAGBeAT6FbTUEyARkcp+e1aVb31JXYlpKhhJZCEsyj8g1Isw
+FSZww5cnxdndfpFjlLGSQYrBWOUzUNncKpe5mt5bfG42WUqeKz2T5V7mGQKxRwwTjzLC34XknV4m
++sxKgZ9LWk/3gT945V8n4fv+Z4g2Bbdi2JBqFMZ+kzE+k8h926ll0bB9m66f481dZNIcfbxsiLkc
+rLbT2eMe4hKkSrHcusCS3VLYK8sTtRyhufEbnIOpoZGjBjADAvAJ9CtpqCZAIyOU/PatKt76krsS
+0lQwkshCWZR+QakWYCpM4Ycyrvz8v1TN4eRmusLlxlZZ7C8WGWON7S4t4HWMpFGTHMbiRnSXnTxA
+NAeUDdWrbFFWRwJBMmbmf7FesR/WTnmS8G0atTm6bNRMECBX2xA+8h+1iZPpUY5iH5f+a3n7R+R9
+C6dBirw4S2DLnOwSQi0trOJc9fXMptZ7pKTzPbl4ka0jmVJGCzfWCdbj5Svq+QO8EABYict1+w+g
+MHtH9J5858bydLfFnxyCXZ7AxhcrmT9SLDrP9YB56Aax/IvGnHGnHGnHGnHGnHNO9y/+oPxvpzww
+nPR565k+t5IsC0N+IoJHZPteUSLEeLL5RJI01CG+vj5DfPjf9CfL+aCfaOoCf/bKSQJgCC2foxAS
+cWtjmL8j5LTq+tj9lz9/r6D0+p+3HTf/AKg/G+4vNCM9HgbmP7HjizzQ2AlgjdU+1JTI0Q5M3jE8
+izUBb6+PkXyX+hPl/CAPtHaDH/ql4JEwRAbH1YApOLWxx4/yWnb9an7Nj7fX0Pr9D9+bi1ofMpxp
+xzz677A0P6D3KSS6mmub3N5KWe4uZ2nZkjuGjhhpuVWNIUijT0VFTYAVPXn+kvB1eP8AHaTrS+NT
+/hDDbsQe5sV3KqVGvYB/liQF2LOzYxQfFfmvIfZ5OwM9J9xfylSiN0QqgLBi6E9zBJ1tCIAxx2Qc
+T9ZVQ0dVZlPIMQTvUEg/HjtrefHa6+4CxDwwDLUqCo61Kqw/Yh5cMxGAAq61vFWoQoKSpKm1jY5k
+Myn7Ap1KgHJlikHE/WVUNHVWZTyDEE71BIPx47aeO119wFiHhgGWpUFR1qVVh+xDy4ZiMABVbxVq
+EKCkqSptY2OZDMp+wKdSoByZYpBxP1lVDR1VmU8gxBO9QSD8eO2njtdfcBYh4YBlqVBUdalVYfsQ
+8uGYjAAVW8VahCgpKkqbWNjmQzKfsCnUqAcmWKQcT9ZVQ0dVZlPIMQTvUEg/Hjtp47XX3AWIeGAZ
+alQVHWpVWH7EPLhmIwAFVvFWoQoKSpKm1jY5kMyn7Ap1KgHJlikHE/WVUNHVWZTyDEE71BIPx47a
+eO119wFiHhgGWpUFR1qVVh+xDy4ZiMABVbxVqEKCkqSptY2OZDMp+wKdSoByZYpBxP1lVDR1VmU8
+gxBO9QSD8eO2njtdfcBYh4YBlqVBUdalVYfsQ8uGYjAAVW8VahCgpKkqbWNjmQzKfsCnUqAcmWKQ
+cT9ZVQ0dVZlPIMQTvUEg/Hjtp47XX3AWIeGAZalQVHWpVWH7EPLhmIwAFVvFWoQoKSpKm1jY5kMy
+n7Ap1KgHJlikHE/WVUNHVWZTyDEE71BIPx47aeO119wFiHhgGWpUFR1qVVh+xDy4ZiMABVbxVqEK
+CkqSptY2OZDMp+wKdSoByZYpBxP1lVDR1VmU8gxBO9QSD8eO2njtdfcBYh4YBlqVBUdalVYfsQ8u
+GYjAAVW8VahCgpKkqbWNjmQzKfsCnUqAcmWO4j+RYQ/lcPYBJZLmbaCLEWxEbCeKK3ZViZP+z+hY
+0lVZVIueQYDfl5687PH+S3adh3BwUZyG1FsuGFmssVKkdbRhsiCBzsby/G1eRvHhFArIgptUdkZV
+lWRpLCv62MiQxIJB0Ra4o42C6ylxPY5WHNYjMWltdLciS0luJLW2ne2a5DRsIvttr5/seWu5aST7
+XYn6D8o67vF1lCP8netgispRD/6+jqG9PTqQWn1zzQ/g0bx/O3Darf8A+jxmKnYysNrj/wBpOzW5
+T19e6lVr+PXlWQcT9ZVQ0dVZlPIMQTvUEg/HjtrtLx2uvuAsQ8MAy1KgqOtSqsP2IeXDMRgAKvOu
+8VahCgpKkqbWNjmQzKfsCnUqAcmWKQcT9ZVQ0dVZlPIMQTvUEg/Hjtp47XX3AWIeGAZalQVHWpVW
+H7EPLhmIwAFVvFWoQoKSpKm1jY5kMyn7Ap1KgHJljsbJYN7OLsP6HjBc2maz+MkTFIslte4qx69a
+3tvl0jDERi5ae2t0uXna8jEUdzxYK0fLXn57yIi+J7ZIYy35AhyPT0Y9AR6AzHpmOdhro2bdh847
+gp1dVwhDIvW35KANjXiSImA2AeQbrsy9t/O+u2vY1yeNkvM1/iOxwW9hcSXtnPeZy4lnx8a/yPzu
+Y8dN4hYWYttQyeOpq/GnV5qBRZES0/QkA59f3zE/x5Ab5kbfjtzM1dm3ZWvqamoj0+iSLR/Ll7JY
+N7OLsP6HjBc2maz+MkTFIslte4qx69a3tvl0jDERi5ae2t0uXna8jEUdzxYK0fLUL3kRF8T2yQxl
+vyBDkenox6Aj0BmPTMcnro2bdh847gp1dVwhDIvW35KANjXiSImA2AeQbrsy9t/O+u2vY1yeNkvM
+1/iOxwW9hcSXtnPeZy4lnx8a/wAj87mPHTeIWFmLbUMnjqavxp1eagUWREtP0JAOfX98xP8AHkBv
+mRt+O3MzV2bdla+pqaiPT6JItH8uXslg3s4uw/oeMFzaZrP4yRMUiyW17irHr1re2+XSMMRGLlp7
+a3S5edryMRR3PFgrR8tQveREXxPbJDGW/IEOR6ejHoCPQGY9MxyeujZt2HzjuCnV1XCEMi9bfkoA
+2NeJIiYDYB5BuuzL238767a9jXJ42S8zX+I7HBb2FxJe2c95nLiWfHxr/I/O5jx03iFhZi21DJ46
+mr8adXmoFFkRLT9CQDn1/fMT/HkBvmRt+O3MzV2bdla+pqaiPT6JItH8uZF2H8z/AF79Et8Nlcf1
+a6ku8/1t8dncnlWgw62+Yy6WUeQmuLW4aO6RYp4bmUrDaFWHH6QyMCK08VE3ubAKNqOPVpChjj6Z
+LAZOM/3in5afFRCCz+zs1n0AFyoH/wAVWcDOPuSOwOldc/x/Teu9S/p/t/8ABxlliv7OH0/d/Dbp
+B9n18n48uHLjyNPSp1Vte7lvuZ5gkWqgfbl3VvlXGnHGnHGnHJ+RzuGxKztkr6G2NtD/AFTRu4+w
+QcuAfgPIgt4Cg3bYb6tPtRPUxGeSdPi7dsUUmTA+0+sT6emf92eftZ5GxyDXSWU6zmyma1ueG4Sd
+FVmSvoSAwrT0O3qCNVK4aY+mOW9ml9cWEWEj/d9/+X/fnD+L6H1buHbOx4HslrfZf9BzndLKwuL9
+DZddyn+Zuf67OfJY+xgWryrNE8mRWS0kVrYiUrGzPNH018T80zfH6tulkGvTpaVHubdY3Aa9i63b
+ZlejL7a3nXsnVd6VbU/k/j/b3w6ntlZrlZi3Xqey4aOw7gKG4ynQ+rdP7Z1zA9btb7EfoOD7pe2F
+vfubLsWU/wAzbfyWcGSyFjOtUlaaVJMcsdpGq2wMoWRlSaR8t80y/H7du5kOvdpWFPuatZ3EbNja
+0bXluit7i3nZsjVdL1V8Z8f7m+EU9ctFcLMW7dR2bLR1HchgvOvO5fqP5/8An7wxdvz1tjbmf62S
+1POa4EUztGkzxQq7pCXUp9zqIw3iWqQNfBPjfgfP+RBPjamcCc4AkCSoLQC0ZoCWjMRzOeR5mnR/
+7Gj+nqfr6AZ+h46b+o/n/wCgPNF1DPW2SuYPsZ7Uc4bgxQusbzJFMqO8Idgn3IpjLeIaoI0+S+B8
+/wCOAPk6mQGM4IkiQpKyA0ZoSGjMRx4/mad//raf6eh+nqDn6jnDXY8aev8AYcnh0uDNPib24sRc
+JGIAws5DEsgCsaFuNSPb5J12J8a483w1Z9Y9rfrV6sx2T7tmdGDCKAMAuYglQiKqg/CfLJ8ff0cj
+ZqcrKqEj26hGBU/kYJOJkBrMzGJdaRUDKeTbrTyHEbGpHoeR2B9t/bWVrbdJDdVwbdDY5FQ2WWg7
+MuA0I2dg5BmNUSvZsiOwqMG1cK1jhWyVl1wh4rSKgZTybdaeQ4jY1I9DyOwPtv7aVtukhuq4Nuhs
+ciobLLQdmXAaEbOwcTGqJXs2RHYVGDauFaxwrZKy64Q8VpFQMp5NutPIcRsakeh5HYH239tK23SQ
+3VcG3Q2ORUNlloOzLgNCNnYOJjVEr2bIjsKjBtXCtY4VslZdcIeK0ioGU8m3WnkOI2NSPQ8jsD7b
++2lbbpIbquDbobHIqGyy0HZlwGhGzsHExqiV7NkR2FRg2rhWscK2SsuuEPFaRUDKeTbrTyHEbGpH
+oeR2B9t/bStt0kN1XBt0NjkVDZZaDsy4DQjZ2DiY1RK9myI7CowbVwrWOFbJWXXCHitIqBlPJt1p
+5DiNjUj0PI7A+2/tpW26SG6rg26GxyKhsstB2ZcBoRs7BxMaolezZEdhUYNq4VrHCtkrLrhDxWkV
+Aynk2608hxGxqR6Hkdgfbf20rbdJDdVwbdDY5FQ2WWg7MuA0I2dg4mNUSvZsiOwqMG1cK1jhWyVl
+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
+
+------=_NextPart_000_0000_01C60883.DC671940--

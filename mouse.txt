@@ -1,0 +1,51 @@
+  1. Reset the mouse to it's default position
+
+    Regs.AX = 0
+    CALL INTERRUPT(&H33, Regs, Regs)
+
+  2. Show the mouse
+
+    Regs.AX = 1
+    CALL INTERRUPT(&H33, Regs, Regs)
+
+  3. Hide the mouse
+
+    Regs.AX = 2
+    CALL INTERRUPT(&H33, Regs, Regs)
+        
+  4. Get the status of the mouse
+
+    Regs.AX = 3
+    CALL INTERRUPT(&H33, Regs, Regs)
+
+    leftMouseButton = Regs.BX AND 1             'These values are
+    rightMouseButton = (Regs.BX AND 2) \ 2      'placed in Regs by BIOS
+    middleMouseButton = (Regs.BX AND 4) \ 4     'when you perform the
+    xPosition = Regs.DX                         'call.
+    yPosition = Regs.CX
+
+  5. Move the mouse to a new place on the screen
+
+    Regs.AX = 4
+    Regs.CX = newYPosition
+    Regs.DX = newXPosition
+    CALL INTERRUPT(&H33, Regs, Regs)
+
+  6. Define a range on the screen that the mouse 'lives' in
+
+    Regs.AX = 7
+    Regs.CX = minimumXValue
+    Regs.DX = maximumXValue
+    CALL INTERRUPT(&H33, Regs, Regs)
+
+    Regs.AX = 8
+    Regs.CX = minimumYValue
+    Regs.DX = maximumYValue
+    CALL INTERRUPT(&H33, Regs, Regs)
+
+  7. Set the sensitivity of the mouse (how fast it moves)
+
+    Regs.AX = 15
+    Regs.CX = xSpeed                'Mouse moves faster as these values
+    Regs.DX = ySpeed                'are decreased.
+    CALL INTERRUPT(&H33, Regs, Regs)

@@ -1,0 +1,156 @@
+
+Bits
+
+Ximmer 
+
+
+
+A byte is a value that can hold a number from 0 to 255.  But what if you 
+don't need a number from 0 to 255?  Say you only want a number from 
+0 to 15.  The answer... Bits.  A Bit is a value containing either a 1, or a 
+0.  But the problem is: How can I Get these bits out of the Byte? The 
+answer: The Boolean operators. 
+
+
+
+ The Boolean operators are Bitwise functions (That is they manipulate 
+Bits). Let's start with the AND Boolean operator 
+
+ The AND operator is the most common, so I'll use it as an example. 
+
+
+
+ Lets say we have A 2 bytes.  The first bytes value is 170, The second 
+Bytes Value is 15. If we use the Logical AND operator (170 AND 15) we 
+get 10. How?  The And function goes through the Bytes Bits (However 
+many their are) and Says If Byte 1's first Bit is 1 "AND" Byte 2's first Bit 
+is 1 then NEWByte's first bit is 1.   Heres the math. 
+
+
+
+           ______Byte1 and Byte2's Bits are both 1 
+           | |   | 
+Byte1  10101010  | 
+Byte2  00001111  | 
+       --------  | 
+       00001010  | 
+           | |   | 
+           ------- 
+
+
+
+ Therefore 10101010 AND 00001111 = 00001010 
+              170           15          10 
+
+
+
+(E.G. IF BIT1 = 1 AND BIT2 = 1 THEN BIT3 = 1) 
+
+
+
+ There.  That was simple.  Now I'll give the math for the other functions. 
+
+
+
+OR (Inclusive OR) 
+
+
+
+Byte1  10101010 
+Byte2  00001111 
+       -------- 
+       10101111 
+
+
+
+(E.G. IF BIT1 = 1 OR BIT2 = 1 THEN BIT3 = 1) 
+
+
+
+ As you can see here, if either of the bits are set, then the new bit is set. 
+
+
+
+XOR (Exclusive OR) 
+
+
+
+Byte1  10101010 
+Byte2  00001111 
+       -------- 
+       10100101 
+
+
+
+(E.G. NONE) 
+
+
+
+ This ones more complicated.  IF (BIT1 = 1 OR BIT2 = 1) AND 
+NOT(BIT1 = 1 AND BIT2 = 2) THEN BIT3 = 1 In other words.  XOR 
+Sets the bit to 1 if the Bits are opposite each other (E.G. 0-1 or 1-0) 
+otherwise it's 0. 
+
+
+
+ Now that you understand the Boolean operators we can learn how to 
+extract individual Bits. 
+
+
+
+Say we want to find out what the first bit is in the number 56.  First off 
+we say that the AND function will return a 1 ONLY if Both bits are set.  
+So we see that the Number 1 has a Bit structure that looks like 
+00000001b So we take 56 AND 1 and we get 0 therefore Bit one of 56 = 
+0. 
+
+
+
+Now Binary is a BASE 2 Number system.  So we can go 2 ^ BitNum% 
+and get the AND value of the Bit! 
+
+
+
+So 2 ^ 0 = 1   (00000001) 
+   2 ^ 1 = 2   (00000010) 
+   2 ^ 2 = 4   (00000100) 
+   2 ^ 3 = 8   (00001000) 
+   2 ^ 4 = 16  (00010000) 
+   2 ^ 5 = 32  (00100000) 
+   2 ^ 6 = 64  (01000000) 
+   2 ^ 7 = 128 (10000000) 
+
+
+
+Therefor a good Bit extraction formula would be 
+
+
+
+IF (Byte AND (2 ^ BitNum)) THEN Bit = 1 
+
+
+
+But here you'll note thatwere getting answers that aren't just 1.  So we 
+need to SHIFT the bits to the right the BitNum were looking for.  This 
+method is called DIVIDING ooOOOOOOOooooo... Scary We need to 
+divide the the answer by the Bit we ANDed by so now we get...: TADA 
+
+
+
+IF (Byte AND (2 ^ BitNum)) / BitNum ^ 2 THEN Bit = 1 
+
+
+
+Heres a Sample BIT extracter 
+
+
+
+Defint A-Z 
+FUNCTION BIT (Byte, BitNum) 
+ BIT = (Byte AND(2 ^ BitNum)) / BitNum ^ 2 
+END FUNCTION 
+
+
+------------------------------------------------------------------------
+The author of this tutorial is Ximmer, who can be reached at 
+rebel@power-tech.net.

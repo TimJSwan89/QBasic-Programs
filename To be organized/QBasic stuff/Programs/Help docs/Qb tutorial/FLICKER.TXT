@@ -1,0 +1,38 @@
+
+Waiting For the Verticle Retrace
+-HAL_8900 
+ 
+	I know every single person out there has at one time 
+download some QB-Game that has TERRIBLE flicker. This is 
+caused by the program running too fast for the monitor to keep 
+up... 
+there's one simple way to eliminate this problem..... wait for the 
+verticle retrace on the monitor! 
+	 
+	Now, before everyone goes "Ungh? WAIT? I want my 
+program to be FAST!" you need to understand, WAITing for the 
+verticle retrace doesn't slow down the program all that much (after 
+all, it's a hardware thing) and the delay will be imperceptable 
+(sp?). Also, you can add this without having to rewrite your entire 
+program.... here's and example: 
+ 
+SUB ANIMATE 
+DO 
+WAIT &H3DA, 8 
+PUT (x,y), sprite<----Assuming that sprite has already been 
+BLOADED and GET-ed(GET-ed ehehe) 
+x=x+1 
+LOOP 
+ 
+Now, of course, with this program, you'll have a long line of sprites 
+when you run it, but  
+implement the command 
+WAIT &H3DA, 8  
+on any animation thats flickery and it should stop (or reduce) the 
+flicker.... 
+Now, this wont ALWAYS work... 
+On really fast machines, this algorithm will work sometimes, at 
+best, but on 486's and Lower-End (66mhz-120 mhz) pentiums, this 
+will produce fantastic results! 
+ 
+YUP! THATS IT!!!!!

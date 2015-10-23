@@ -1,0 +1,232 @@
+
+  Back in days of old, when Commodore's were bold and "no one needed
+more than 640k" I was shown a simple idea that has remained with me
+through several languages and countless version changes. As the
+concept is so important I would like to share my experience with those
+of you who wish to continue reading. As these ideas were "handed down"
+to me from fellow programmers and/or from this news group I feel it
+only right that I pass it back to others just BASICally getting
+started.
+
+  On the Commodores and in GW-BASIC it looked something like this:
+
+100 G$ = INKEY$ : IF G$<>"" THEN RETURN ELSE GOTO 100
+
+One might ask; "if it's a one-liner then why not just type it in the
+code each time you need it?" and that would be a valid question. On
+the Commodore we had all of 32k for the program so we counted bytes
+and bits. Things were a bit better on the super PCs of the time, we
+had 64k but even 64k fills up real quick. GOSUB 100 was cheaper than
+all that code. It is also easier to type, takes less text space, etc.
+
+  A couple years later my trusty old XT and I got QuickBASIC and
+TurboBASIC (TB won out). One of the first functions I wrote was:
+
+FUNCTION GetKey$()
+  LOCAL G$
+
+  DO : G$ = INKEY$ : LOOP UNTIL G$<> ""
+  GetKey$ = G$
+
+END FUNCTION
+
+Not much had changed, just the "shape", did the same thing, wasn't
+much smarter, but I slowly realized that NOW with all the other
+goodies that the modern BASICs offered that GetKey$ was far superior
+to the old GW version.
+
+GetKey$ stayed virtually unchanged for many years until a month ago
+when version 1,342.02g was built, accepted, and integrated throughout
+my libraries.
+
+FUNCTION fGetKey% ()
+  LOCAL G$
+
+  DO
+    G$ = INKEY$
+  LOOP UNTIL LEN(G$) > 0
+  G$ = G$ + CHR$(0)
+  fGetKey% = CVI( G$ )
+
+END FUNCTION
+
+As you can see, still not much has changed but the 2 little changes do
+make a world of difference. First of all LEN(G$) is faster and cheaper
+than G$ = "" and passing/using INTEGERs instead of STRINGs is just
+good business!
+
+Before you can fully understand fGetKey% there are few things you must
+know:
+
+CVI (n$) converts the FIRST 2 BYTES of a string into an INTEGER
+STR$(n%) converts an INTEGER into a STRING
+CHR$(n%) converts the FIRST BYTE of an INTEGER into a STRING
+INKEY$   returns 0, 1 or 2 byte strings only
+
+An INTEGER is stored LOWBYTE:HIBYTE in memory.
+  eg: INTEGER = HIBYTE*256 + LOWBYTE
+  <SPACE> = CHR$(32)         : CVI( CHR$(32)+CHR$(00) ) =    32
+  <F10>   = CHR$(0)+CHR$(68) : CVI( CHR$(00)+CHR$(68) ) = 17408
+
+An EQUATE (name may change from BASIC to BASIC) is a number, in the
+range of an INTEGER that can be assigned only ONCE in a program and is
+like a command to the compiler to replace the "text" with the value
+assigned to it. These little rascals are EXTREMELY useful and their
+full use should be explored at your earliest convenience.
+
+  So, now that we've got everyone up to scratch, let's get back into
+fGetKey%. Using fGetKey% makes many, many, seemingly difficult tasks
+so easy it almost feels like cheating to use them (..NOT..). fGetKey%
+creates one place in the program were you KNOW the user's key-presses
+are going to be available. EVERY KEY-PRESS, think about that!!!
+
+ 1) Trap ANY key you want without generating thousands of bytes of
+    extra code with ON KEY.
+ 2) On-screen clocks can be run from here without creating a flock of
+    extra code.
+ 3) Instant Pop-up goodies no matter where the user is.
+ 4) Automatic screen blanking after x seconds with no user input
+ 5) Make keys "illegal" and disallow there use program wide.
+ 6) Run the whole main menu with hot-keys trapped by fGetKey%
+ 7) Run demos from stored key-presses & elapsed times.
+ 8) Translate incoming key-presses into UCASE$, LCASE$, or even
+    other languages.
+ 9) and on, and on, and on, and on.......
+
+ So, how do you make this work for you? Well, let's get into that now.
+First of all there are a group of key-presses that are pretty constant
+in every program. Thinks like <ESC>, <ENTER>, <F1>, <F10>, <UP>,
+<DOWN>, etc. so you'll want to create an include file of EQUATES and
+keep it handy. I have translated all mine into HEX so the numbers are
+all the same length and display a cleaner list but that's a personal
+thing. Here are some of the more common ones:
+
+%HOME_key   = &h4700 : %UP_key     = &h4800 : %PGUP_key   = &h4900
+%LEFT_key   = &h4B00 :                      : %RIGHT_key  = &h4D00
+%END_key    = &h4F00 : %DOWN_key   = &h5000 : %PGDN_key   = &h5100
+%ENTER_key  = &h000D : %CTRL_Enter = &h000A
+%ESC_key    = &h001B : %F01_key    = &h3B00 : %F10_key    = &h4400
+
+These represent the values that fGetKey% will be returning when these
+keys are pressed. They also make the task of writing a menu much
+easier as you only have to remember the key name and, of course the
+code is self explanatory. It all looks like this:
+
+DO
+  G% = fGekKey%
+  SELECT CASE G%
+    CASE %HOME_key
+    CASE %UP_key
+    CASE %PGUP_key
+    CASE %LEFT_key
+    CASE %RIGHT_key
+    CASE %END_key
+    CASE %DOWN_key
+    CASE %PGND_key
+    CASE %ENTER_key
+  END SELECT
+LOOP UNTIL G% = %ESC_key
+
+_THAT_, my friends, is legible code. It also happens to be faster than
+its cousin which uses STRINGs and CHR$(0)+CHR$(70). I'll grant that it
+takes a bit of work to create your list of key-presses but it's worth
+the one time effort, believe me!
+
+  Conversely, there are values that the keyboard can't produce, like
+-1 CHR$(255)+CHR$(255), and these can be just as important as the
+legal ones when sending signals to routines. Like %BailOut = -1. Think
+about it!
+
+If you're going to do some key and/or time trapping your function is
+going to have to get a bit bigger. So, let's play with this idea that
+does just about everything:
+
+ON TIMER (60) GOSUB CLOCK   
+
+$EVENT ON    ' Turn on event trapping (it was off)
+
+FUNCTION fGetKey% ()
+  LOCAL G%, G$, T!
+
+  TIMER ON
+  DO 
+   T! = TIMER + 180  ' 3 minutes from now
+    DO
+      G$ = INKEY$
+      IF TIMER > T! THEN
+        CALL BlankScreen
+        G% = 0
+        EXIT LOOP
+      END IF
+    LOOP UNTIL LEN( G$ ) > 0
+    G$ = G$ + CHR$(0)
+    G% = CVI( G$ )
+    SELECT CASE G%
+      CASE %F01_key  : CALL PopHelp   ' trap F1 for help
+      CASE %ALT_x    : GOTO ByeBye    ' trap <ALT>X to end program
+      CASE 124       : G% = 0         ' trap "|" so it can't be used
+      CASE 97 TO 122 : G% = G% - 32   ' English UCASE
+    END SELECT
+  LOOP UNTIL G% <> 0
+
+  TIMER STOP
+  fGetKey% = G%
+
+END FUNCTION
+
+$EVENT OFF     ' no more event trapping needed!
+
+As I said, MOST everything is here. The on screen clock is running, a
+3 minute screen blanker is in force, the pipe character has been
+removed from the user, instant pop-up help is activated for the whole
+program, an instant bail-out key is standing by, the English alphabet
+will ALWAYS return the UCASEd version of the character, thousands of
+bytes of code have been saved because we haven't used ON KEY, and ON
+TIMER only affects a few lines of code. The best part is that if
+anything needs changing or maybe something needs to be added like
+%ALT_F1 for more help then it all happens in one place for the whole
+program. You won't have to search every routine in every file, debug,
+or worry that you missed one.
+
+  If you were observant then you noticed one other important aspect of
+programming; consistency. The variable "G" has followed me for over a
+decade now and has ALWAYS meant the same thing. "The incoming (gotten)
+key." It has changed from G$ of old to the G% of today but it is still
+a "G" and anyone who reads ANY of my code will soon become familiar
+with its value. The "G", itself, isn't important ("K" works pretty
+well too and I've even seen OTHER variables!) but the consistency IS
+important.
+
+  Another trick showed up a few years back that made things easier
+too. Notice that the name changed from GetKey to fGetKey? Well, back
+in the old days the only functions we had were DEF fnGetKey type
+things and "fn" is still a reserved word in most BASICs. When you used
+a function that started with "fn" you could see at a glance what was
+happening but today, with the more open format allowed one can not
+tell a function from a variable: eg: G% = GetKey%. GetKey%, here,
+could be a function or a variable so how do you tell?  Well, what a
+couple of friends of mine and I came up with were a few simple rules
+to alleviate the confusion. Here's my list of "rules".
+
+   MySub        - subs start with a capital letter
+  fMyFunction   - functions start with a small "f"
+  sSharedVar    - shared variables start with a small "s"
+  pPublicVar    - public variables start with a small "p"
+  cCommonVar    - common variables start with a small "c"
+  tTYPEvar      - DIMed type variables start with a small "t"
+   AllOtherVars - all other variables start with a capital letter
+                  !!ALL variables are signed!!
+
+  Well, thanks for hanging in there! I hope this information helps
+some of you. To those of you who feel like I've wasted your time
+and/or band width I apologize but I've noticed that quite a few people
+keep asking questions about ON KEY, INKEY$, etc. and I would think
+this little idea will help those people quite a bit. Like I said at
+the top, I've been helped by others known and unknown and, in the
+spirit of things, feel like I can now repay those debts.
+
+  A parting shot here. I don't mind this tutorial being reproduced
+EXCEPT where it is done for a profit. That is meant to include "how
+to" books but exclude web pages and collections like ABC packets, etc.
+
+Any questions?

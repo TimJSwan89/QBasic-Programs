@@ -1,0 +1,271 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<meta name="AUTHOR" content="Bowen Office">
+<meta name="GENERATOR" content="Microsoft FrontPage 3.0">
+<title>QBASIC</title>
+</head>
+
+<body>
+
+<p ALIGN="JUSTIFY"><small>Last updated: 5/13/01<br>
+Link back to site <a href="../welcome.htm">Welcome...</a></small></p>
+
+<h2 align="center">Lab: Computer Programming with QBASIC </h2>
+
+<hr>
+
+<h3>Background</h3>
+
+<p>In the early days of computers, most people wrote and ran their own programs. This led
+to the conclusion that everybody that was going to use a computer needed to learn how to
+program. Courses like &quot;Computers and Society&quot; were substantially about
+programming. </p>
+
+<p>Now, however, it is clear that most people who use computers are not programmers, but
+use programs (applications) written by others; programs such as word processors,
+spreadsheets and database programs. Today, some of these can involve programming. Here,
+building formulae in Excel, you have done some programming. And even major word processors
+such as Microsoft Word contain built-in programming languages for customizing work.
+Usually, however, anything substantial is done by specialists within an organization. It
+can still help to understand something about programming. But this is nowhere near the
+amount of programming that was done to create the applications. </p>
+
+<p>Here you will examine some pre-written programs to see how they work, using the QBASIC
+programming language. DOS always came with a built-in programming language. Earlier DOS
+versions came with GWBASIC, but later, QBASIC became the standard. Early versions of
+Windows came with a programming language, but starting with Windows 95, programming
+languages became for-sale add-ons.</p>
+
+<p>Programming has several steps: 
+
+<ol>
+  <li>Design of the program (we will skip that step here, but in real-life programming it is
+    critical, and often determines success or failure of the whole project).</li>
+  <li>Entering the program, usually via the keyboard. Programs are usually text files,
+    although they may have extensions other than txt (QBASIC, for example, uses bas). However,
+    even with other extensions, program files can be edited with text editors such as NotePad.
+    The program at this point is in a programming language, and is generically known as
+    &quot;source code&quot; (the form that can most easily be read and understood by humans.</li>
+  <li>Fixing syntax problems. This is the easiest part of debugging. All programming languages
+    have grammars or syntaxes, formal rules that all statements must comply with. For example,
+    in QBASIC, two variables must be separated by an operator that combines them, such as +,
+    -, * (multiplication) or /. Each program statement must comply with the syntax, which
+    means that the computer will be able to execute it. This by no means assures that the
+    program will do what you want, however.</li>
+  <li>Execution and debugging. The source language statements must be translated into machine
+    code that the computer can directly execute. This can be done statement-by-statement and
+    executed after translation. This method is known as &quot;interpeting.&quot; Or, all of
+    the translation can be done at once, up front, and saved as a file (exe, com or dll
+    extension) known as &quot;compilation.&quot; Compilation results in faster execution rates
+    since the computer does not have to do the translation while it is executing. QBASIC is an
+    interpreted language. As the program is executed by whichever of these two types of
+    processes, the programmer must verify that the program is actually doing what was
+    intended. This is also debugging, and is more difficult that the first step. </li>
+</ol>
+
+<p>QBASIC is designed for small programs and quick results. It has one outstanding feature
+for beginners; each program line is checked for syntax after you leave the line with
+&lt;Enter&gt; or the up or down arrow keys. It may not do what you want, but the check
+ensures that it is legal. If the line is OK, it is put into a standard format with: 
+
+<ul>
+  <li>all mathematical operators such as + and - have a space on each side </li>
+  <li>all QBASIC commands and other keywords are capitalized. Examples of commands and
+    keywords are INPUT (get user input from keyboard) and PRINT (display on the screen). </li>
+</ul>
+
+<p>If the line is not legal, there is no change from the way you typed it; this is a
+signal to look for a problem and edit the line to fix the problem(s). </p>
+
+<p>Notice that if you enter lines already in the standard format, there will be no change
+if the line is legal. Therefore, it pays to enter lines without spaces around the
+operators, and with the keywords in lowercase. </p>
+
+<h2>Starting QBASIC</h2>
+
+<ul>
+  <li>If you have a QBASIC desktop icon, double-click that.</li>
+  <li>If you do not have a QBASIC desktop icon, but you have copied QBASIC to your C: drive,
+    start Windows (NT) Explorer, right-click on the C: icon, then choose &quot;Find&quot; and
+    type &quot;qbasic.exe&quot; and click &quot;Find Now.&quot; When QBASIC is found, you have
+    two options:<ul>
+      <li>To create a desktop icon, right-click on the qbasic.exe icon, choose &quot;Create
+        Shortcut&quot; and respond &quot;Yes&quot; when you are asked if you want the shortcut to
+        be placed on the desktop. Close the &quot;Find&quot; dialog, close or minimize Windows
+        (NT) Explorer, and locate the new icon on the desktop. Proceed as under the first bullet
+        above.</li>
+      <li>To run directly, right-click on the qbasic.exe icon, choose &quot;Open&quot;, click
+        &quot;OK&quot; to clear the Parameters dialog, and QBASIC will open.</li>
+    </ul>
+  </li>
+</ul>
+
+<p>When QBASIC starts, tap the &lt;Esc&gt; key to clear the opening dialog, unless you
+want to read the background help information.</p>
+
+<h2>Using QBASIC: </h2>
+
+<p>You may be able to use the mouse with QBASIC menus. QBASIC menus are very similar to
+Windows menus. Unlike Windows, the mouse cursor starts off the screen on the left. Move
+the mouse to the right to bring the cursor onto the screen.</p>
+
+<p>To use the QBASIC menus on the lab computers, first hit the &lt;Alt&gt; key. This will
+highlight the menu items. (If you hit &lt;Alt&gt; by mistake, you can hit &lt;Esc&gt; or
+&lt;Alt&gt; again to cancel and return to the screen.) To pull down a menu item, such as
+File, type its first letter (white when menus are highlighted). With the menu subitems
+pulled down for display, move up and down with the corresponding arrow keys. When the item
+you want is highlighted, hit &lt;Return&gt; to choose it.</p>
+
+<p>The programming screen is blue by default; the help screens are black. </p>
+
+<p>In QBASIC, like most high-level programming languages, the programmer keeps tracks of
+variables by symbol (e.g. x) instead of by the numerical address of the location. QBASIC
+keeps track of the addresses. </p>
+
+<p>QBASIC has several types of values it can store and work with. Here, these are
+specified by the last character of the variable name, as follows: 
+
+<ul>
+  <li>$: a string, or set of characters. </li>
+  <li>%: an integer, or whole number </li>
+  <li>!: a real number, or number with a decimal point. </li>
+</ul>
+
+<p>On a program line, anything after a single quote (') is treated as a comment and
+ignored. You will use this as part of the assignment. </p>
+
+<h2>Assignment: </h2>
+
+<p>(NOTE: Below, for a key with a word label, such as Esc, the key is shown as
+&lt;Esc&gt;. If you see the angle brackets &lt;&gt; they enclose the text on the key.) 
+
+<ol>
+  <li>Start QBASIC:</li>
+  <li>One by one, type the programs listed below into the QBASIC programming screen. Put a
+    comment on each line explaining what the line does in the program. (Remember: comments
+    start with '.) Put another comment line at the beginning with your name on it, and a
+    second line (or lines) explaining what the program does. Print out and turn in the
+    program. The File / Print menu items prints the current program.<ol type="A">
+      <li>Type in each line using all lowercase characters, and with no spaces around the = and +
+        characters. For example, for the line in Program 1 shown as<br>
+        <font face="Courier New">j$ = INKEY$<br>
+        </font>type in instead<br>
+        <font face="Courier New">j$=inkey$</font></li>
+      <li>If you haven't made any typing mistakes, you will your typing change to the format shown
+        in the program listing when you hit &lt;Enter&gt; or &lt;Return&gt; to start typing the
+        next line.</li>
+    </ol>
+  </li>
+  <li>You will probably make typing mistakes, which usually result in the line just typed not
+    having the correct syntax, so that QBASIC will not put the line in the standard format as
+    explained above. When this happens (doesn't happen), examine the line on the screen,
+    compare it to the listing here, and make corrections, until the syntax errors have all
+    been corrected.</li>
+  <li>After each program is working, use the File / Print menu items to print the program with
+    your comments, then delete everything from the screen to type in the next program. You can
+    use File / Save (As) to save your programs.</li>
+  <li>Also, run each program to see exactly what it does. (In fact, you may have to do this
+    before you can figure out what some of the program lines do.) Once a program is typed in,
+    use the Run / Start menu item to run the program. Each of these programs waits for the
+    user (you) to type. On the program listing, write out what the program does.</li>
+  <li>In general, these programs all demonstrate how it is the microprocessor that controls
+    what appears on the screen. In other words, there is no direct connection between the
+    keyboard and the screen, but everything is subject to the control of the microprocessor.</li>
+</ol>
+
+<h3>Program 1 </h3>
+
+<pre><font size="2">CLS
+PRINT &quot;C:&gt; &quot;;
+DO WHILE (2 &gt; 1)
+  j$ = INKEY$
+  IF (LEN(j$) = 1) THEN
+    IF (ASC(j$) = 27) THEN STOP
+    PRINT j$;
+  END IF
+LOOP
+
+NOTE: you will have to use &lt;Esc&gt; to end this one.
+</font>
+</pre>
+
+<h3>Program 2 </h3>
+
+<pre><font size="2">CLS
+PRINT &quot;C:&gt; &quot;;
+DO WHILE (2 &gt; 1)
+  j$ = INKEY$
+    IF (LEN(j$) = 1) THEN
+    IF (ASC(j$) = 27) THEN STOP
+    IF (j$ &lt;&gt; &quot; &quot;) THEN j$ = CHR$(ASC(j$) + 1)
+    PRINT j$
+  END IF
+LOOP
+
+NOTE: you will have to use &lt;Esc&gt; to end this one.
+</font>
+</pre>
+
+<h3>Program 3</h3>
+
+<pre><font size="2">s$ = &quot;Help, I'm a prisoner inside this computer. &quot;   ' Set up line for display
+j% = LEN(s$)
+i% = 0
+CLS
+PRINT &quot;C:&gt; &quot;;
+DO WHILE (2 &gt; 1)
+  k$ = INKEY$
+  IF (LEN(k$) = 1) THEN
+    IF (ASC(k$) = 27) THEN STOP
+    i% = i% + 1
+    IF (i% &gt; j%) THEN i% = 1
+    PRINT MID$(s$, i%, 1);
+  END IF
+LOOP
+
+NOTE: you will have to use &lt;Ctrl&gt;c to end this one;
+</font>
+</pre>
+
+<h3>Appendix: More detail about the QBASIC commands</h3>
+
+<p>There are many QBASIC commands and keywords. To learn about one, click on Help,
+double-click on Index and type the first letter of the keyword. Then double-click on the
+one you want to read about. To leave Help, hit &lt;Esc&gt; to get back to the programming
+screen. Here are the keywords we will be using: 
+
+<ul>
+  <li><strong>ASC()</strong>: A number equal to the character code of the character inside the
+    parentheses. </li>
+  <li><strong>CLS</strong>: Clear the screen </li>
+  <li><strong>DO WHILE</strong>: Carry out the program lines that follow, as long as the
+    condition following the WHILE is true. </li>
+  <li><strong>IF (condition) THEN action</strong>: If the condition is true, then the action
+    is executed. If the condition is false, then nothing is done.</li>
+  <li><strong>IF (condition) THEN action1 ELSE action2</strong>: If the condition is true,
+    then actions is executed; otherwise action 2 is executed.&nbsp; </li>
+  <li><strong>INKEY$</strong>: Gets the keyboard from the user, one key at a time, but without
+    displaying it on the screen. As indicated by the $ at the end, they key is treated as a
+    character, not as number. </li>
+  <li><strong>INPUT</strong>: Get keyboard input from the user. Also displays the keyboard on
+    the screen. For example, INPUT x% gets number keystrokes from the keyboard, converts them
+    from ASCII and stores them in the variable x%. If there is a string inside quotation marks
+    between INPUT and the variable, it is output as a prompt to the user. If the user entry
+    does not match the variable, it cannot be stored in the variable, and an error message is
+    displayed. This happens if, for example, the variable is an integer (ends in %) and the
+    user types z. </li>
+  <li><strong>LEN()</strong>: A number equal to the length of the string inside the
+    parentheses</li>
+  <li><strong>LOOP</strong>: Ends a DO WHILE (lines between DO WHILE and LOOP will be carried
+    out</li>
+  <li><strong>LPRINT</strong>: Print to the printer</li>
+  <li><strong>PRINT</strong>: Print to the screen. Ending with a semicolon (;) means that the
+    next print starts immediately to the right.</li>
+  <li><strong>MID$(string,i,j)</strong>: A substring of the string that is the first argument,
+    starting at character number i. The substring is j characters long. (If j is omitted, the
+    substring is one character long.) </li>
+</ul>
+</body>
+</html>

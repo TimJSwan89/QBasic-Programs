@@ -1,0 +1,82 @@
+
+                                Optimiz5.Txt
+
+        This text file is the fifth in a guide for use by QB/QBASIC
+programmers to help optimize the program code for greater efficiency and/or
+give a program a more professional look..  If you have any quetions, contact
+VirtuaSoft at gump@gnt.net.  Address to Danny.
+
+        (Note: This is not for the beginning programmer.  A strong
+        background in QB/QBASIC programming is highly recommended.)
+
+        5. SPRITES
+                a. What is a sprite?
+                b. Making a sprite routine
+
+5. SPRITES
+
+        a. What is a sprite?
+                A sprite is basically any image in a program that is not
+        the background or foreground.  Moving images are sprites.  Some
+        examples would be Mario or MegaMan.  
+
+        b. Making a sprite routine (in screen 13H)
+                Before you read any further, be sure that you have read
+        the tutorials on POKEing and PEEKing and INTEGERs for efficiency.
+                Since we are not using the Commodore 128 with its built-in
+        sprite routines, we need to go through the trouble of designing our
+        own.  QB's GET and PUT either leave black boxes around the images
+        (PSET) or don't show the black but distort the colors (XOR), so that
+        won't work.  To make a transparent sprite (doesn't draw black), you
+        need to draw it pixel-by-pixel, checking for black before each plot.
+                The easiest way to do this would be to save the image in
+        GET-PUT format with each element as an INTEGER
+        (ex. DIM picture(32001) as INTEGER).  Below is the format for INTEGER
+        GET-PUT arrays:
+
+                array%(0) = width of image in bits
+                array%(1) = height of image in pixels
+                array%(2)
+                ...       = listing of pixel values (2 per element)
+                array%(n)
+
+                To get the image's width in pixels, simply divide array-
+        element 0 by 8 (ex. width%=array%(0)\8).  The image's height equals
+        array element 1.  To start drawing your sprite, you must define the
+        array's memory segment (ex. DEF SEG=VARSEG(array%(0)) ).  This is
+        because you will be PEEKing the pixel values directly from the array.
+        Let's say the black value on your palette is color # 0, so this
+        sprite routine should be set to not draw any pixel it encounters
+        with the value 0.
+                So basically what was set up, above, is the beginning of the
+        sprite routine and all the needed values.  You are now ready to begin
+        making your sprite.  Below is an example of the finished sprite
+        routine that is included in VirtuaSoft's graphics library...
+
+                SUB sprite (x%, y%, file$)
+
+                DIM picture(32001) AS INTEGER
+                DEF SEG = VARSEG(picture(0))
+                BLOAD file$, VARPTR(picture(0))
+                FOR tempx% = 0 TO picture(0) \ 8 - 1
+                   FOR tempy% = 0 TO picture(1) - 1
+                      temp% = PEEK(VARPTR(picture(2)) + tempx% + (picture(0) \ 8&) * tempy%)
+                      IF temp% > 0 AND tempx% + x% >= 0 AND tempx% + x% < 320 AND tempy% + y% >= 0 AND tempy% + y% < 200 THEN
+                         PSET (x% + tempx%, y% + tempy%), temp%
+                      END IF
+                   NEXT
+                NEXT
+                DEF SEG = &HA000
+
+                END SUB
+
+                (x% and y% are the values passed to the sub that tell where
+        the top-left of the sprite will be, and file$ is the file that holds
+        the array.)
+                If you decide to use this code in a program, remember to cite
+        VirtuaSoft in the credits and e-mail a copy of the file to
+        gump@gnt.net so that VirtuaSoft can feel proud that it's programs and
+        tutorials have helped someone.
+
+               ... This concludes the lesson ...
+

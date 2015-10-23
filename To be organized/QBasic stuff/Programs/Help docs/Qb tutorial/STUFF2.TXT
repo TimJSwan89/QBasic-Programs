@@ -1,0 +1,356 @@
+
+I.    How do I use BLOAD and BSAVE?
+ 
+        BLOAD and BSAVE directly address memory, so you need to  
+    define the memory segment and offset to load or save the file.  To  
+    BSAVE, you also need to tell how large the file will be in bytes.  
+    The syntax for BSAVE and BLOAD are set up as follows:  
+ 
+            DEF SEG = Segment: BSAVE "FileName", Offset, #bytes  
+            DEF SEG = Segment: BLOAD "FileName", Offset  
+ 
+        (The # of bytes counts 0, so subtract 1 byte from whatever  
+    your total size is.)  
+        To save or load an image from the graphics screen, use the  
+    segment &ha000 and the offset 0; for text screens, use &hb800  
+    and 0; and for arrays, use VARSEG (array%(0)) and  
+    VARPTR(array%(0)).  
+ 
+II.    How do I load and save a palette?  
+ 
+        Actually, this depends on the file format.  Most people use  
+    palettes stored in 256 element LONG arrays.  For this format,  
+    one would to the following:  
+        Saving:  
+            DIM pal&(255)  
+            DEF SEG = VARSEG(pal&(0))  
+            FOR col% = 0 to 255  
+                OUT &h3c7, col%  
+                POKE VARPTR(pal&(col%)), INP(&h3c9)  
+                POKE VARPTR(pal&(col%)) + 1, INP(&h3c9)  
+                POKE VARPTR(pal&(col%)) + 2, INP(&h3c9)  
+            NEXT  
+            BSAVE "FileName.pal", VARPTR(pal&(0)), 1023  
+ 
+        Loading:  
+            DIM pal&(255)  
+            DEF SEG = VARSEG(pal&(0))  
+            BLOAD "FileName.pal", VARPTR(pal&(0))  
+            FOR col% = 0 to 255  
+                OUT &h3c8, col%  
+                OUT &h3c9, PEEK VARPTR(pal&(col%))  
+                OUT &h3c9, PEEK VARPTR(pal&(col%)) + 1  
+                OUT &h3c9, PEEK VARPTR(pal&(col%)) + 2  
+            NEXT  
+ 
+        What the above code did was it accessed the array and  
+    wrote the RGB values to the hardware port.  This method is  
+    over 100x faster than QB's PALETTE statement.  
+ 
+III.    How do I texture a 4-pointed polygon?  
+ 
+        Texture-mapping is a very difficult process.  I don't even know  
+    how to do it with perspective correction the way that the pros do  
+    it in games like Mario 64, but I can help with texturing that doesn't  
+    have perspective correction.  
+        Before I explain how to texture, I first want to explain what it is.  
+    Texture-mapping is basically the process of overlaying a rectangular  
+    picture on a polygon of any shape.  It allows the picture to be  
+    warped and contorted to fit the shape of the polygon.  Doom and  
+    Wolfenstein did NOT use texture-mapping!  They used a 2D  
+    texturing algorithm that filled rotated rectangles using verticle lines.  
+    This was not texture-mapping.  
+        So, how do you actually go about placing a texture on a polygon?  
+    Do you calculate the average slope of the polygon?  Well, you don't  
+    actually calculate the slope and store it in a variable, what you must  
+    do is calculate the slope on-the-fly.  To do this, on a 4-pointed  
+    polygon, you can use one of several methods.  The method I use  
+    calculates a texel's position by finding the distance that texel is from  
+    each side of the polygon and finding the percent of each sides'  
+    slopes.  To do this, you must trace along the image vertically and  
+    horizontally inside two loops.  Then you take the percent of the  
+    distance from each side of the image and use that to calculate the  
+    distance between each X and Y on the polygon. 
+This text file is the second part of a guide for use by QB/QBASIC 
+programmers to help optimize the program code for greater efficiency.  If 
+you have any questions, contact VirtuaSoft at gump@gnt.net.  Address to 
+Danny. 
+        (Note: This is not for the beginning programmer.  A strong 
+        background in QB/QBASIC programming is highly recommended.) 
+ 
+        2. Poke and Peek 
+                a. Never Use PSET and POINT 
+                b. Integers vs. LONG Integers 
+                c. Memory Segments 
+ 
+2. Poke and Peek 
+ 
+        a. Never Use PSET         
+                The QB/QBASIC PSET statement is very slow.  It is this way 
+        because it needs to be generic so that it can work in every graphics 
+        screen mode.  But POKE is more specific, yet broad.  The memory 
+        segment to address is simply given, and a direct memory write can 
+        take place.  POINT is equally as slow as PSET.  PEEK should be used 
+        in place of POINT whenever possible. 
+                I will give you a hint on where to and not to use POKE and 
+        PEEK so that you don't confuse yourself as I did at first.  You 
+        should still use PSET and POINT in any graphics screen below 13H.  I 
+        advise this because memory is arranged in difficult to decipher ways 
+        in these screen modes.  Some are four bits per pixel.  Others are two 
+        or one.  Some divide the memory within screen pages.  Yet others use 
+        more than 64k requiring bank-switching (very messy if you don't know 
+        what you are doing). 
+                Screen 13H and the text screens have one byte per pixel, 
+        character, or character color.  This makes it very easy to address 
+        memory for these modes.  (Memory addressing will further be covered 
+        in 2c of the lesson.) 
+ 
+        b. Integers vs. LONG-Integers 
+                If you are already trying to use screen 13h (320*200*256) by 
+        POKEing colors, you may notice that below around the center of the 
+        screen, an INTEGER variable will overflow when a value > 32767 is 
+        POKEd.  Thus you would think that a LONG-INTEGER should be used... 
+        nope, it's not needed. 
+                For those of you who have started programming in assembly, 
+        you may notice that the 16-bit integers have no negative values, so 
+        they can go beyond BASIC's 32767 all the way to 65535.  Actually, 
+        this is only partially true...assembly's 16-bit numbers do have 
+        negatives.  -5=-5+65536=65531 (modular arithmetic)!  A negative in 
+        assembly is the same as that number plus 2^(# bits). 
+                This can be used to POKE the bottom half of the screen in 
+        13H.  To POKE 32768, simply take 32768-65536=-32768, and you would 
+        say it like this: POKE -32768, color. 
+ 
+        c. Memory Segments 
+                The foloowing are memory segments and offsets that are 
+        important for programming: 
+ 
+                                Segment                 Offset 
+        Graphics                &HA000                  0 
+        Text                    &HB800                  0 
+        ASCII characters        &HFFA6                  14 
+ 
+                The segments can be achieved by: DEF SEG=[Segment #] and 
+        the offsets are used whole peeking: PEEK ([Byte]+[Offset]). 
+This text file is the third in a guide for use by QB/QBASIC 
+programmers to help optimize the program code for greater efficiency.  If 
+you have any quetions, contact VirtuaSoft at gump@gnt.net.  Address to Danny. 
+ 
+        (Note: This is not for the beginning programmer.  A strong 
+        background in QB/QBASIC programming is highly recommended.) 
+ 
+        3. PALETTE 
+                a. PALETTE USING 
+                b. Hardware Output 
+                c. Hardware Input 
+ 
+3. PALETTE 
+ 
+        a. PALETTE USING 
+                PALETTE USING is a QB statement that writes all 256 colors to 
+        the PALETTE at once instead of one at a time.  This increases the 
+        speed by several times.  Simply place the color values in a 256 
+        element LONG INTEGER array with each element having the RGB values 
+        of that color's PALETTE (65536*red+256*green+blue   Values are 0-63). 
+                PALETTE USING is used like this: 
+ 
+                        DIM PaletteVariable(255) AS LONG 
+                        ... 
+                        PALETTE USING PaletteVariable(0) 
+                        ... 
+ 
+                But why use this when you can write to the hardware for a 
+        60x speed increase!?  ...Next section... 
+ 
+        b. Hardware Output 
+                This is the ultimate PALETTE initiation method.  It can 
+        change the entire 256 color PALETTE in the blink of an eye.  It's so 
+        fast that PALETTE rotation and plasma effects can easily be achieved! 
+        But the downside is that this is slightly more difficult to learn, 
+        but once it's understood, it's a snap! 
+                It is used as follows: 
+ 
+                        OUT &H3C8, ColorNumber 
+                        OUT &H3C9, RedValue 
+                        OUT &H3C9, GreenValue 
+                        OUT &H3C9, BlueValue 
+ 
+                The COLOR values, as with PALETTE USING, range from 0-63. 
+        When using this method, it's easiest to have a 256 element LONG 
+        INTEGER array as was used for PALETTE USING, above.  Also, a 
+        little bit of PEEKing should be used to further increase the speed 
+        and efficiency of the program.  Below is an example: 
+ 
+                        DIM PalVar(255) AS LONG 
+                        ... 
+                        DEF SEG=VARSEG(PalVar(0)) 
+                        BLOAD "Palette.pal", VARPTR(PalVar(0)) 
+                        FOR Temp%=0 to 255 
+                                OUT &H3C8, Temp% 
+                                OUT &H3C9, PEEK(VARPTR(PalVar(Temp%))) 
+                                OUT &H3C9, PEEK(VARPTR(PalVar(Temp%))+1) 
+                                OUT &H3C9, PEEK(VARPTR(PalVar(Temp%))+2) 
+                        NEXT 
+ 
+                This example BLOADs a separate PALETTE file, but that is not 
+        necessary if you define all the colors in the program.  If you are 
+        not rotating the PALETTE, this method isn't always necessary; the 
+        PALETTE USING method will do fine. 
+ 
+        c. Hardware Input 
+                This does just the opposite of part (b).  By doing this, 
+        you can read the palette values from the hardware. 
+ 
+                It is used as follows: 
+ 
+                        OUT &H3C7, ColorNumber 
+                        RedValue = INP(&H3C9) 
+                        GreenValue = INP(&H3C9) 
+                        BlueValue = INP(&H3C9) 
+ 
+                This is very useful for fading the screen or adjusting 
+        a current palette. 
+ This text file is the fifth in a guide for use by QB/QBASIC 
+programmers to help optimize the program code for greater efficiency and/or 
+give a program a more professional look..  If you have any quetions, contact 
+VirtuaSoft at gump@gnt.net.  Address to Danny. 
+ 
+        (Note: This is not for the beginning programmer.  A strong 
+        background in QB/QBASIC programming is highly recommended.) 
+ 
+        5. SPRITES 
+                a. What is a sprite? 
+                b. Making a sprite routine 
+ 
+5. SPRITES 
+ 
+        a. What is a sprite? 
+                A sprite is basically any image in a program that is not 
+        the background or foreground.  Moving images are sprites.  Some 
+        examples would be Mario or MegaMan.   
+ 
+        b. Making a sprite routine (in screen 13H) 
+                Before you read any further, be sure that you have read 
+        the tutorials on POKEing and PEEKing and INTEGERs for efficiency. 
+                Since we are not using the Commodore 128 with its built-in 
+        sprite routines, we need to go through the trouble of designing our 
+        own.  QB's GET and PUT either leave black boxes around the images 
+        (PSET) or don't show the black but distort the colors (XOR), so that 
+        won't work.  To make a transparent sprite (doesn't draw black), you 
+        need to draw it pixel-by-pixel, checking for black before each plot. 
+                The easiest way to do this would be to save the image in 
+        GET-PUT format with each element as an INTEGER 
+        (ex. DIM picture(32001) as INTEGER).  Below is the format for INTEGER 
+        GET-PUT arrays: 
+ 
+                array%(0) = width of image in bits 
+                array%(1) = height of image in pixels 
+                array%(2) 
+                ...       = listing of pixel values (2 per element) 
+                array%(n) 
+ 
+                To get the image's width in pixels, simply divide array- 
+        element 0 by 8 (ex. width%=array%(0)\8).  The image's height equals 
+        array element 1.  To start drawing your sprite, you must define the 
+        array's memory segment (ex. DEF SEG=VARSEG(array%(0)) ).  This is 
+        because you will be PEEKing the pixel values directly from the array. 
+        Let's say the black value on your palette is color # 0, so this 
+        sprite routine should be set to not draw any pixel it encounters 
+        with the value 0. 
+                So basically what was set up, above, is the beginning of the 
+        sprite routine and all the needed values.  You are now ready to begin 
+        making your sprite.  Below is an example of the finished sprite 
+        routine that is included in VirtuaSoft's graphics library... 
+ 
+                SUB sprite (x%, y%, file$) 
+ 
+                DIM picture(32001) AS INTEGER 
+                DEF SEG = VARSEG(picture(0)) 
+                BLOAD file$, VARPTR(picture(0)) 
+                FOR tempx% = 0 TO picture(0) \ 8 - 1 
+                   FOR tempy% = 0 TO picture(1) - 1 
+                      temp% = PEEK(VARPTR(picture(2)) + tempx% + (picture(0) \ 8&) * tempy%) 
+                      IF temp% > 0 AND tempx% + x% >= 0 AND tempx% + x% < 320 AND 
+tempy% + y% >= 0 AND tempy% + y% < 200 THEN 
+                         PSET (x% + tempx%, y% + tempy%), temp% 
+                      END IF 
+                   NEXT 
+                NEXT 
+                DEF SEG = &HA000 
+ 
+                END SUB 
+ 
+                (x% and y% are the values passed to the sub that tell where 
+        the top-left of the sprite will be, and file$ is the file that holds 
+        the array.) 
+                If you decide to use this code in a program, remember to cite 
+        VirtuaSoft in the credits and e-mail a copy of the file to 
+        gump@gnt.net so that VirtuaSoft can feel proud that it's programs and 
+        tutorials have helped someone. 
+ This text file is the seventh in a guide for use by QB/QBASIC 
+programmers to help optimize the program code for greater efficiency and/or 
+give a program a more professional look..  If you have any quetions, contact 
+VirtuaSoft at gump@gnt.net.  Address to Danny. 
+ 
+        (Note: This is not for the beginning programmer.  A strong 
+        background in QB/QBASIC programming is highly recommended.) 
+ 
+        7. DOUBLE-BUFFERING II 
+                a. GET-PUT storage format 
+                b. Using GET-PUT for double-buffering 
+ 
+7. DOUBLE-BUFFERING II 
+ 
+        a. GET-PUT storage format 
+                GET and PUT are the most efficient form of image storage that 
+        exists.  This format basically tells a picture's width and its height 
+        then lists all the color values of the image.  Below is a breakdown 
+        of the GET-PUT format as it stores an image in screen 13H as an 
+        INTEGER array. 
+ 
+                array%(0) = width of image in bits 
+                array%(1) = height of image in pixels 
+                array%(2) 
+                ...       = listing of pixel values 
+                array%(n) 
+ 
+                For double buffering, the array's 0 element will have the 
+        value of 2560 because 13H has 320 pixels across at 8 bits each and 
+        320*8=2560.  The array's 1 element will have the value of 200 because 
+        13H has 200 pixels in its height.  Then all the remaining elements 
+        will have two pixels per element (INTEGERs are 16-bit and the pixels 
+        are 8-bit).  So, the array will look as follows: 
+ 
+                array%(0) = 2560 
+                array%(1) = 200 
+                array%(2) = pixel at 0,0, pixel at 1,0 
+                ... 
+                array%(n) = pixel at 318,199, pixel at 319,199 
+ 
+        b. Using GET-PUT for double-buffering 
+                Now that you're an expert on GET-PUT arrays for 13H, you 
+        understand enough to POKE values into that array, right?  It's 
+        basically the same as POKEing onto the screen except for a different 
+        memory segment.  Below is a comparison of how POKEing into an array 
+        and onto the screen differ: 
+ 
+                SCREEN: 
+                        DEF SEG = &HA000 
+                        POKE x% + 320& * y%, color% 
+ 
+                GET-PUT ARRAY: 
+                        DEF SEG = VARSEG(array%(0)) 
+                        POKE VARPTR(array%(2)) + x% + 320& * y%, color% 
+ 
+                It's now that much different, is it?  The only difference is 
+        that you define a different memory segment, and you need to also 
+        include the array's offset (the offset of SCREEN 13H is 0, so an 
+        offset was never needed before), then it's the same POKEing formula 
+        after that. 
+                So to use this for double buffering, simply draw your screen 
+        image directly into this GET-PUT array, then PUT the final image on 
+        the screen like this: PUT (0, 0), array%, PSET. 
+                If you're wondering about how to POKE LINEs and CIRCLEs into 
+        a GET-PUT array, I will begin making a library that will do that and 
+        release it on my web site eventually. 
+

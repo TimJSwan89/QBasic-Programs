@@ -1,0 +1,185 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title>Loops</title>
+</head>
+
+<body>
+
+<div align="center">
+  <center>
+  <table border="1" width="90%" height="1770">
+    <tr>
+      <td width="100%" colspan="2" height="26">
+        <p align="center"><font color="#0000FF" size="5"><b>Loops</b></font></td>
+    </tr>
+    <tr>
+      <td width="100%" colspan="2" height="63"><font size="4">Loop are a
+        powerful technique that give the programmer the ability to have the
+        program repeat code.&nbsp; Repeating code saves time for the programmer,
+        save space in the program, and makes programs easier to read (more
+        compact code).&nbsp; There are three types of loops that we will
+        learn about.&nbsp; Each loop has a particular function with certain advantages.</font></td>
+    </tr>
+    <tr>
+      <td width="50%" height="267"><font size="4">1.&nbsp; For Next loop</font>
+        <p><font size="4">The For-Next loop is designed to run a set number of
+        times.&nbsp; Useful when you want a loop to run exactly a certain number
+        of times.</font></p>
+        <p><font size="4">Enter and run the following</font></p>
+        <p><font size="4">&nbsp;&nbsp;&nbsp; PRINT &quot;Enter three
+        numbers&quot;<br>
+        <br>
+        &nbsp;&nbsp;&nbsp; For x = 1 to 3<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; INPUT Num<br>
+        &nbsp;&nbsp;&nbsp; Next x</font></td>
+      <td width="50%" height="267"><font size="4">Note that the loop allows you
+        to enter three numbers but doesn't do anything with the numbers.</font>
+        <p><font size="4">Remember to indent your code within a loop (easier to
+        read).&nbsp; As well, put a line of white space before and after the
+        loop.</font></td>
+    </tr>
+    <tr>
+      <td width="50%" height="227"><font size="4">2.&nbsp; For Next loop&nbsp;</font>
+        <p><font size="4">Let's change the loop in number 1 to add the numbers
+        and prompt the user for each number (red code).</font></p>
+        <p><font size="4">&nbsp;&nbsp;&nbsp; For x = 1 to 3<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <font color="#FF0000">Print
+        &quot;Enter number &quot; ; x ; &quot;: &quot;;</font><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; INPUT Num<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <font color="#FF0000">Sum =
+        Sum + Num</font><br>
+        &nbsp;&nbsp;&nbsp; Next x</font></td>
+      <td width="50%" height="227"><font size="4">Now the program will ask for
+        each number.&nbsp; The line Sum = Sum + Num is how we add the
+        numbers.&nbsp; As the loop runs each time, Sum will add to itself the
+        new Num entered. We are still missing part of the program?</font></td>
+    </tr>
+    <tr>
+      <td width="50%" height="164"><font size="4">3.&nbsp; For Next Loop</font>
+        <p><font size="4">Are program in number 2 will add the numbers entered
+        but does not display the result.&nbsp; Add the following line at the bottom
+        of the program.</font></p>
+        <p><font size="4" color="#FF0000">&nbsp;&nbsp;&nbsp; Print &quot;The sum
+        is &quot; ; Sum</font></td>
+      <td width="50%" height="164"><font size="4" color="#800080">Have your
+        instructor check off your program</font></td>
+    </tr>
+    <tr>
+      <td width="50%" height="162"><font size="4">4.&nbsp; Using For Next to
+        draw graphics</font>
+        <p><font size="4">We can use the For Next to draw using QBasic graphics
+        mode (Screen 12).</font></p>
+        <p><font size="4">Enter the following to draw rectangles</font></p>
+        <p><font size="4">&nbsp;&nbsp;&nbsp; screen 12</font>
+        <p><font size="4">&nbsp;&nbsp;&nbsp; For x = 0 to 30 STEP 10<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Line (220 + x, 140 + x) -
+        (420 - x, 140 + x)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Line (420, 140) - (420, 340)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Line (420, 340) - (220, 340)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Line (220, 340) - (220, 140)<br>
+        &nbsp;&nbsp;&nbsp; Next x</font></td>
+      <td width="50%" height="162"><font size="4">*&nbsp; The code will only
+        draw one rectangle and then the top three lines for the inner
+        rectangles.</font>
+        <p><font size="4">*&nbsp; The loop is counting up by 10's starting at 0
+        and going to 30.&nbsp; That will give us a total of four
+        rectangles.&nbsp; In effect, the loop adds/subtracts depending how you
+        set up each column/row number.</font></p>
+        <p><font size="4">*&nbsp; You have to use the x to add/subtract from the
+        column/row numbers to get the loop to draw the lines properly.</font></p>
+        <p>&nbsp;</td>
+    </tr>
+    <tr>
+      <td width="50%" height="349"><font size="4">5.&nbsp; Do-Loop Until</font>
+        <p><font size="4">This loop will run at least once and will stop when
+        the condition is met.&nbsp; Enter the following at run.</font></p>
+        <p><font size="4">&nbsp;&nbsp;&nbsp;&nbsp; Print &quot;Guess a number
+        1-10&quot;</font></p>
+        <p><font size="4">&nbsp;&nbsp;&nbsp;&nbsp; Do<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Print &quot;Enter
+        guess&quot; ;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Input Guess<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; If Guess &lt;&gt;
+        2 Then<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        Print &quot;Incorrect&quot;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; End If<br>
+        &nbsp;&nbsp;&nbsp;&nbsp; Loop Until Guess = 2</font></p>
+        <p><font size="4">&nbsp;&nbsp;&nbsp;&nbsp; Print &quot;Correct!&quot;</font></td>
+      <td width="50%" height="349"><font size="4">The condition to quit this
+        loop is Guess = 2.&nbsp; You can set up any condition you want.&nbsp;
+        Remember, the loop runs UNTIL the condition is True, then the loop stops
+        and the program continues.</font>
+        <p><font size="4">Change the program so that the correct number is any
+        number greater than 6.</font></p>
+        <p><font size="4" color="#800080">Have your instructor check off your
+        program</font><p><font size="4" color="#000000"><a href="random_numbers.htm">Bonus:&nbsp;
+        Click here to learn how to create a random number</a></font></td>
+    </tr>
+    <tr>
+      <td width="50%" height="287"><font size="4">6.&nbsp; While - Wend loop</font>
+        <p><font size="4">The While loop may not run at all depending on the
+        initial condition.&nbsp; Enter and run.</font></p>
+        <p><font size="4">&nbsp;&nbsp;&nbsp; Print &quot;Enter your favourite
+        colour&quot;;<br>
+        &nbsp;&nbsp;&nbsp; Input Colour$</font></p>
+        <p><font size="4">&nbsp;&nbsp;&nbsp; While Colour$ &lt;&gt;
+        &quot;red&quot; <br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Print &quot;Wrong
+        Colour, try again&quot;;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Input Colour$<br>
+        &nbsp;&nbsp;&nbsp; Wend</font></p>
+        <p><font size="4">&nbsp;&nbsp;&nbsp;&nbsp; Print &quot;That is the
+        correct colour!&quot;</font></td>
+      <td width="50%" height="287"><font size="4">Note that the condition is at
+        the <font color="#FF0000">beginning </font>of the loop.&nbsp; If the
+        user enters red at the start, the loop will never run.&nbsp; The loop
+        will only run if the condition is True.</font>
+        <p><font size="4" color="#800080">Have your instructor check off your
+        program</font></td>
+    </tr>
+    <tr>
+      <td width="50%" height="21"><font size="4">7.&nbsp; Print the Loops sheet
+        off &gt;&gt;&gt;&gt;&gt;</font></td>
+      <td width="50%" height="21"><font size="4"><a href="QB_Work_Sheets/QB3_Working_loops.doc">Working
+        with Loops Sheet</a></font></td>
+    </tr>
+    <tr>
+      <td width="50%" height="19"><font size="4">8.&nbsp;&nbsp; When your
+        instructor has checked off your Working with Loops sheet, print the hand
+        in assignment assignment &gt;&gt;&gt;&gt;&gt;&gt;</font></td>
+      <td width="50%" height="19"><a href="QB_Work_Sheets/CS20%20Sales%20-%20Loop%20Assignment.doc"><font size="4">Loop
+        Assignment - Sales Program</font></a></td>
+    </tr>
+    <tr>
+      <td width="50%" height="19"></td>
+      <td width="50%" height="19"></td>
+    </tr>
+    <tr>
+      <td width="50%" height="19"></td>
+      <td width="50%" height="19"></td>
+    </tr>
+    <tr>
+      <td width="50%" height="19"></td>
+      <td width="50%" height="19"></td>
+    </tr>
+    <tr>
+      <td width="50%" height="19"></td>
+      <td width="50%" height="19"></td>
+    </tr>
+    <tr>
+      <td width="50%" height="19"></td>
+      <td width="50%" height="19"></td>
+    </tr>
+  </table>
+  </center>
+</div>
+
+</body>
+
+</html>

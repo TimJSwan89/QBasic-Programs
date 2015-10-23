@@ -1,0 +1,396 @@
+
+
+                          Pixel By Pixel Scrolling
+
+                                  In QBasic
+
+
+
+
+
+
+
+
+
+
+                               By Aaron Severn
+
+                              December 20, 1997
+                              
+
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+Table of Contents
+
+0 Disclaimer
+1 Introduction
+2 Getting Enough Speed
+  2.1 A Faster PSET
+  2.2 A New Way to Store Sprites
+3 Scrolling Pixel by Pixel
+4 Sample Program
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+0 Disclaimer
+------------
+
+  I assume no responsibility for any harm that comes from using the material
+contained in this document to you, your computer, or anything relating to
+your existence.  No warranty is provided or implied with this information.
+This document is provided as is.
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+1 Introduction
+--------------
+
+  This is a topic that most budding game programmers would love to master,
+but many just don't know where to start.  Pixel by pixel scrolling is
+actually pretty simple, there's a bit of math involved in getting the moving
+pixels in the right place, but other than that it's pretty straight forward.
+The main problem lies in getting enough speed to do the scrolling without
+any flicker.  This is virtually impossible to achieve in uncompiled QBasic,
+and even when compiled you will probably have to use only a small portion of
+the screen for scrolling.  But there are some tricks for getting more speed,
+so that is where I will start.
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+2.1 Getting Enough Speed - A Faster PSET
+----------------------------------------
+
+  Well, the title says it all, a faster PSET.  This is only useful in screen
+mode 13 for starters, so don't waste your time trying it in another mode.
+The idea is based on how mode 13 stores pixels in the graphics buffer, since
+each pixel can have a value of 0 to 255 (256 colours) each pixel takes up
+exactly one byte (isn't that convenient).  Now, QBasic has a very handy
+commanded known as POKE which lets you put one byte into a location in
+memory, and it does it very quickly.  Here's what you have to do:
+
+  Start with the following line somewhere at the beginning of your program,
+before you start drawing graphics:
+
+  DEF SEG = &HA000
+
+  &HA000 is the segment address of the graphis buffer, the DEF SEG command
+points to the specified address, so in this case it points to the graphics
+buffer.  Note that you only want to have to use DEF SEG once if possible,
+you'll lose any speed you might have gained if you add that line before
+every pixel you draw.  If you have to change the default segment for any
+other portion of your program make sure you change it back as soon as that
+part of the program has run, and if possible rewrite the code so that it
+doesn't need DEF SEG anymore.  The default segment is most useful when it's
+pointing at the graphics buffer.
+
+  The next thing you have to do is calculate the offset address of the pixel
+you want to set.  As I said, 1 byte = 1 pixel, so the following simple
+formula will work:
+
+  offset& = y * 320& + x
+
+  Pixels are stored left to right and then top to bottom, so the formula
+moves down y rows (320 is the width of the screen in mode 13) and then across
+x columns.  Note that the variable holding the offset is a long integer, this
+is because you can get values above the 32 767, which is the maximum value
+for an integer in QBasic.  Also note that the 320 is forced to be a long
+integer as well, this is because the preliminary value (y * 320) can also
+exceeds the limits of an integer so QBasic must be told to expect a long
+integer answer.
+
+  Now, you've got the segment and you've got the offset so all you have to
+do is POKE the pixel into memory.  Here's how that's done:
+
+  POKE offset&, colour
+
+  The following is a simple example of using this method of drawing graphics,
+all it does is fill the screen.
+
+  DEFINT A-Z
+
+  SCREEN 13
+  DEF SEG = &HA000
+
+  FOR y = 0 TO 199
+     FOR x = 0 TO 319
+        offset& = y * 320& + x
+        POKE offset&, x MOD 256
+     NEXT
+  NEXT
+
+  For an idea of what kind of speed increase you can expect from this method
+of putting pixels I tested this program based on how long it took to run on
+my computer compared to how long it took when the two lines inside the FOR
+loops were replaced with PSET (x, y), x MOD 256.  I also tested it when the
+programs were compiled, here are the results.
+
+                                Average of 10 tries (in seconds)
+Uncompiled with PSET                        .44
+Uncompiled with POKE method                 .35
+Compiled with PSET                          .20
+Compiled with POKE method                   .11
+
+  As you can see the POKE method runs consistently faster.
+
+
+2.2 Getting Enough Speed - A New Way to Store Sprites
+-----------------------------------------------------
+
+  One problem that comes with pixel by pixel scrolling is that you need to
+access individual pixels in a sprite.  Now if you use QBasic sprites (with
+GET and PUT) you'll have to use the DEF SEG command to point to the segment
+address of the sprite so you can PEEK at the pixels.  As I mentioned above,
+we don't want to use DEF SEG more than once, so we need another way.
+
+  So there's no way to look at individual bytes in an array in QBasic, too
+bad, but there is a way to look at individual integers and it happens to be
+very fast and easy.  Sure, it'll mean using twice as much memory, but it's
+worth it for the increased speed.  So store your sprites in a simple integer
+array and you're set.  Here's an example of using this technique with
+sprites, it reads a 5x5 sprite from data and draws it on the screen.
+
+  DEFINT A-Z
+
+  SCREEN 13
+  CLS
+
+  DEF SEG = &HA000
+
+  DIM sprite(24)                        'Note: 5 * 5 - 1.  Subtract 1 because
+                                        'the first element of the array is 0,
+                                        'not 1.
+  FOR i = 0 TO 24
+     READ sprite(i)
+  NEXT
+
+  FOR y = 0 TO 4                        'Note: Pixels are number 0 to 4,
+     FOR x = 0 TO 4                     'not 1 to 5.
+
+        element = y * 5 + x             'Same formula as for faster PSET,
+                                        'just change 320 to width of sprite.
+        offset& = y * 320& + x
+        POKE offset&, sprite(element)   'Use the faster PSET.
+     NEXT
+  NEXT
+
+  DATA 0,0,1,0,0
+  DATA 0,1,9,1,0
+  DATA 1,9,3,9,1
+  DATA 0,1,9,1,0
+  DATA 0,0,1,0,0
+
+  So those are the tools you need for getting the necessary speed for pixel
+by pixel scrolling, now let's move into the actual scrolling.
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+3. Scrolling Pixel by Pixel
+---------------------------
+
+  When scrolling a screen pixel by pixel, you have to keep track of two
+things, where you're drawing on the screen, and how much the screen has been
+scrolled.
+
+  You'll have a map of the world you're scrolling so you'll have to
+know exactly what pixel should be seen first.  So each time the screen
+scrolls right, increase a variable that's keeping track of horizontal
+scrolling, each time it scrolls left, decrease that variable.  Do the same
+with a variable to keep track of vertical scrolling.  These variables will
+give you the exact pixel that is to be displayed in the top left corner of
+the screen.
+
+  Next you'll need two things, you'll need to know which tile on the map is
+being displayed and you'll need to know which pixel on that tile should be
+drawn first.  The following formulas will give you those values:
+
+  To find the x and y coordinates of the tile on the map:
+    xOnMap = horizontalScroll \ widthOfTile
+    yOnMap = verticalScroll \ widthOfTile
+
+      Where horizontalScroll and verticalScroll are the values you've been
+      keeping track of for how much the screen has scrolled.
+
+  To find the first pixel on that tile to display:
+    xOnTile = horizontalScroll MOD widthOfTile
+    yOnTile = verticalScroll MOD widthOfTile
+
+      MOD returns the remainder of a division, for example 67 MOD 10 = 7 and
+      7 is the remainder of 67 / 10.
+
+  Now that you've got those values all you have to do is move across the
+screen horizontally and then vertically drawing as you go, but the best way
+to learn this stuff would be to have a thorough look at the sample program,
+so I'll leave that up to you.
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+4. Sample Program
+-----------------
+
+This program does run fast enough for flicker free scrolling uncompiled on
+most computers, but for best performance, compile it.
+
+DEFINT A-Z
+
+'$DYNAMIC
+
+DIM tile(1, 99)                         'Array for the two tiles
+DIM map(399)                            'For the map
+
+FOR j = 0 TO 1                          'Load the tiles
+   FOR i = 0 TO 99
+      READ tile(j, i)
+   NEXT
+NEXT
+
+FOR i = 0 TO 399: READ map(i): NEXT     'Load the map
+
+SCREEN 13
+CLS
+
+DEF SEG = &HA000                        'Point to the graphics buffer
+
+hScroll = 0                             'These variables will keep track of
+vScroll = 0                             'how far the screen has scrolled
+
+PRINT "Use the number pad to scroll,"
+PRINT "esc to quit."
+
+DO
+  verticalVal = vScroll
+
+  tileX = hScroll \ 10                  'Calculate all original values
+  tileY = verticalVal \ 10
+  mapElem = tileY * 20 + tileX
+ 
+  spriteX = hScroll MOD 10
+  spriteY = vScroll MOD 10
+  spriteElem = spriteY * 10 + spriteX
+  
+  WAIT &H3DA, 8                         'Wait for vertical retrace
+
+  ' The two FOR..NEXT loops loop through the visible screen which is the box
+  ' from (60, 110) to (139, 209).
+  FOR screenY = 60 TO 139
+
+     ' Inside the second loop, the offset will only be increased by 1 each
+     ' time through, so it's pointless to keep on recalculating it.  If we
+     ' calculate it once for each y loop and then just add 1 inside the x
+     ' loop we can speed things up.
+     offset& = screenY * 320& + 110
+
+     FOR screenX = 110 TO 209
+
+        ' Use the faster PSET.  The colour location of the pixel in the tile
+        ' array has been precalculated, we get the tile number from the map
+        ' and then take the specific pixel.  The offset is increased by 1
+        ' each time through the loop to move horizontally across the screen.
+        POKE offset&, tile(map(mapElem), spriteElem)
+        offset& = offset& + 1
+
+        ' Move over one pixel in the sprite, if we've moved on to the next
+        ' tile then spriteElem will be a multiple of 10 (we move through
+        ' pixels 0 to 9 and then when we hit 10, the width of the tile,
+        ' we've moved on to the next tile).  So spriteElem is knocked back
+        ' to the first pixel of the row and we move 1 forward along the map.
+        spriteElem = spriteElem + 1
+        IF spriteElem MOD 10 = 0 THEN
+          spriteElem = spriteElem - 10
+          mapElem = mapElem + 1
+        END IF
+     NEXT
+
+     ' Recalculate the map element now that we've moved down one row in the
+     ' sprite, and possibly down one row on the map.  VerticalVal keeps track
+     ' of the vertical motion down the map.
+     verticalVal = verticalVal + 1
+     tileY = verticalVal \ 10
+     mapElem = tileY * 20 + tileX
+    
+     ' Recalculate the sprite element now that we've moved down one row in
+     ' the sprite.  If we've moved down to the next tile, knock the spriteY
+     ' value back to the top of the tile.
+     spriteY = spriteY + 1
+     IF spriteY = 10 THEN spriteY = 0
+     spriteElem = spriteY * 10 + spriteX
+  NEXT
+
+  ' Check for a key press and then clear the keyboard buffer.
+  key$ = INKEY$
+  DO: LOOP UNTIL INKEY$ = ""
+  
+  ' Adjust the hScroll and vScroll values to reflect how much the screen has
+  ' been scrolled.
+  SELECT CASE key$
+         CASE "4"
+             IF hScroll > 0 THEN hScroll = hScroll - 1
+         CASE "6"
+             IF hScroll < 100 THEN hScroll = hScroll + 1
+         CASE "8"
+             IF vScroll > 0 THEN vScroll = vScroll - 1
+         CASE "2"
+             IF vScroll < 120 THEN vScroll = vScroll + 1
+         CASE "7"
+             IF hScroll > 0 THEN hScroll = hScroll - 1
+             IF vScroll > 0 THEN vScroll = vScroll - 1
+         CASE "9"
+             IF hScroll < 100 THEN hScroll = hScroll + 1
+             IF vScroll > 0 THEN vScroll = vScroll - 1
+         CASE "1"
+             IF hScroll > 0 THEN hScroll = hScroll - 1
+             IF vScroll < 120 THEN vScroll = vScroll + 1
+         CASE "3"
+             IF hScroll < 100 THEN hScroll = hScroll + 1
+             IF vScroll < 120 THEN vScroll = vScroll + 1
+  END SELECT
+LOOP UNTIL key$ = CHR$(27)
+
+' Tile 0
+DATA 1,1,1,1,1,1,1,1,1,1
+DATA 1,2,2,2,2,2,2,2,2,1
+DATA 1,2,3,3,3,3,3,3,2,1
+DATA 1,2,3,4,4,4,4,3,2,1
+DATA 1,2,3,4,5,5,4,3,2,1
+DATA 1,2,3,4,5,5,4,3,2,1
+DATA 1,2,3,4,4,4,4,3,2,1
+DATA 1,2,3,3,3,3,3,3,2,1
+DATA 1,2,2,2,2,2,2,2,2,1
+DATA 1,1,1,1,1,1,1,1,1,1
+
+' Tile 1
+DATA 1,1,1,1,1,1,1,1,1,1
+DATA 1,1,1,1,2,2,1,1,1,1
+DATA 1,1,1,2,3,3,2,1,1,1
+DATA 1,1,2,3,4,4,3,2,1,1
+DATA 1,2,3,4,5,5,4,3,2,1
+DATA 1,2,3,4,5,5,4,3,2,1
+DATA 1,1,2,3,4,4,3,2,1,1
+DATA 1,1,1,2,3,3,2,1,1,1
+DATA 1,1,1,1,2,2,1,1,1,1
+DATA 1,1,1,1,1,1,1,1,1,1
+
+' Map
+DATA 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0
+DATA 0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0,0,0,0
+DATA 0,0,0,0,0,0,0,1,1,0,0,0,1,0,0,0,1,0,0,0
+DATA 0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+DATA 0,1,0,1,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0
+DATA 0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0
+DATA 0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0
+DATA 0,0,0,0,1,0,1,0,0,0,1,0,0,0,1,0,0,1,0,0
+DATA 0,0,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1
+DATA 0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1,1,0,0,0
+DATA 0,0,1,0,1,1,0,0,0,1,0,0,1,0,0,1,0,0,0,0
+DATA 0,0,1,0,0,1,0,0,1,1,0,0,1,0,0,0,0,0,0,0
+DATA 0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0
+DATA 0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0
+DATA 0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,1,1,0,0,0
+DATA 0,0,0,1,0,0,1,0,0,0,1,0,1,0,1,1,0,0,1,0
+DATA 0,0,1,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,1
+DATA 0,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,1,0,1,0
+DATA 0,1,0,0,0,1,1,0,1,0,0,1,0,0,0,1,1,0,0,0
+DATA 0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0
+
+
+

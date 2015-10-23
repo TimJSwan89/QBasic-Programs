@@ -1,0 +1,67 @@
+
+                                Optimiz2.Txt
+
+        This text file is the second part of a guide for use by QB/QBASIC
+programmers to help optimize the program code for greater efficiency.  If
+you have any questions, contact VirtuaSoft at gump@gnt.net.  Address to
+Danny.
+        (Note: This is not for the beginning programmer.  A strong
+        background in QB/QBASIC programming is highly recommended.)
+
+        2. Poke and Peek
+                a. Never Use PSET and POINT
+                b. Integers vs. LONG Integers
+                c. Memory Segments
+
+2. Poke and Peek
+
+        a. Never Use PSET        
+                The QB/QBASIC PSET statement is very slow.  It is this way
+        because it needs to be generic so that it can work in every graphics
+        screen mode.  But POKE is more specific, yet broad.  The memory
+        segment to address is simply given, and a direct memory write can
+        take place.  POINT is equally as slow as PSET.  PEEK should be used
+        in place of POINT whenever possible.
+                I will give you a hint on where to and not to use POKE and
+        PEEK so that you don't confuse yourself as I did at first.  You
+        should still use PSET and POINT in any graphics screen below 13H.  I
+        advise this because memory is arranged in difficult to decipher ways
+        in these screen modes.  Some are four bits per pixel.  Others are two
+        or one.  Some divide the memory within screen pages.  Yet others use
+        more than 64k requiring bank-switching (very messy if you don't know
+        what you are doing).
+                Screen 13H and the text screens have one byte per pixel,
+        character, or character color.  This makes it very easy to address
+        memory for these modes.  (Memory addressing will further be covered
+        in 2c of the lesson.)
+
+        b. Integers vs. LONG-Integers
+                If you are already trying to use screen 13h (320*200*256) by
+        POKEing colors, you may notice that below around the center of the
+        screen, an INTEGER variable will overflow when a value > 32767 is
+        POKEd.  Thus you would think that a LONG-INTEGER should be used...
+        nope, it's not needed.
+                For those of you who have started programming in assembly,
+        you may notice that the 16-bit integers have no negative values, so
+        they can go beyond BASIC's 32767 all the way to 65535.  Actually,
+        this is only partially true...assembly's 16-bit numbers do have
+        negatives.  -5=-5+65536=65531 (modular arithmetic)!  A negative in
+        assembly is the same as that number plus 2^(# bits).
+                This can be used to POKE the bottom half of the screen in
+        13H.  To POKE 32768, simply take 32768-65536=-32768, and you would
+        say it like this: POKE -32768, color.
+
+        c. Memory Segments
+                The foloowing are memory segments and offsets that are
+        important for programming:
+
+                                Segment                 Offset
+        Graphics                &HA000                  0
+        Text                    &HB800                  0
+        ASCII characters        &HFFA6                  14
+
+                The segments can be achieved by: DEF SEG=[Segment #] and
+        the offsets are used whole peeking: PEEK ([Byte]+[Offset]).
+
+               ... This concludes the lesson ...
+

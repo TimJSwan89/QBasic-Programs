@@ -1,0 +1,170 @@
+'*- Introduction -****************************************************
+
+SCREEN 12
+Introduction:
+CLS
+COLOR 10: LOCATE 2, 4
+PRINT "Welcome to Pixel Blast by Tim Swan!"
+LOCATE 4, 1
+PRINT " * The ---------- move the pixel blaster in four directions."
+LOCATE 6, 1
+PRINT " * The ---------- moves the pixel blaster in eight directions."
+LOCATE 8, 1
+PRINT " * The - and - keys change the pixel color."
+LOCATE 10, 1
+PRINT " * The - and - keys change the erase color."
+LOCATE 12, 1
+PRINT " * The ----- key clears the screen."
+LOCATE 14, 1
+PRINT " * The - key centers the pixles to start over."
+LOCATE 16, 1
+PRINT " * The - key induces a small outward blast."
+LOCATE 18, 1
+PRINT " * The - key freezes the pixels into a spin."
+LOCATE 20, 1
+PRINT " * The - key activates/deactivates orbiting around the orbit point."
+LOCATE 22, 1
+PRINT " * The - key etiher sets the orbit center point, or returnes the pixel blaster."
+LOCATE 24, 1
+PRINT " * The --- key allows you to exit."
+COLOR 12
+LOCATE 4, 8:  PRINT "arrow keys": LOCATE 6, 8:   PRINT "number pad"
+LOCATE 8, 8:  PRINT ",":          LOCATE 8, 14:  PRINT "."
+LOCATE 10, 8: PRINT ";":          LOCATE 10, 14: PRINT "'"
+LOCATE 12, 8: PRINT "Enter":      LOCATE 14, 8:  PRINT "M"
+LOCATE 16, 8: PRINT "N":          LOCATE 18, 8:  PRINT "J"
+LOCATE 20, 8: PRINT "K":          LOCATE 22, 8:  PRINT "L"
+LOCATE 24, 8: PRINT "Esc":        COLOR 9
+LOCATE 26, 6: PRINT "Press any key to continue."
+key$ = INKEY$: WHILE key$ = "": key$ = INKEY$: WEND:
+IF key$ = CHR$(27) THEN GOTO Finish
+
+'*- Set Arrays -******************************************************
+
+CLS : RANDOMIZE TIMER
+x = 200:   y = 200:    dotcolor = 16: erasecolor = 0
+orbit = 0: xorb = 275: yorb = 200
+DIM xspeed(100): DIM yspeed(100): DIM xdot(100): DIM ydot(100)
+DIM colour(100): DIM colour2(100)
+
+'*- Pixel Engine -****************************************************
+                                                                    '*
+WHILE key$ <> CHR$(27)                                              '*
+  FOR a = 1 TO 100                                                  '*
+  key$ = INKEY$                                                     '*
+  IF key$ <> "" THEN GOSUB keyboard                                 '*
+  IF orbit > 0 THEN GOSUB orbit                                     '*
+    PSET (INT(xdot(a)), INT(ydot(a))), colour2(a)                   '*
+    IF dotcolor = 16 THEN             '}******************************
+      colour(a) = INT(RND * 14) + 1   '} - Color Editing -           *
+    ELSE                              '}                             *
+      colour(a) = dotcolor            '}                             *
+    END IF                            '}                             *
+    IF erasecolor = 16 THEN           '}                             *
+      colour2(a) = INT(RND * 14) + 1  '}                             *
+    ELSE                              '}                             *
+      colour2(a) = erasecolor         '}                             *
+    END IF                            '}******************************
+  xdot(a) = x                                                       '*
+  ydot(a) = y                                                       '*
+  xspeed(a) = RND * 2 - 1                                           '*
+  yspeed(a) = RND * 2 - 1                                           '*
+    FOR b = 1 TO 100                                '}****************
+    PSET (INT(xdot(b)), INT(ydot(b))), colour2(b)   '} - Nested      *
+    xdot(b) = xdot(b) + xspeed(b)                   '} Animation     *
+    ydot(b) = ydot(b) + yspeed(b)                   '} Loop -        *
+    PSET (INT(xdot(b)), INT(ydot(b))), colour(b)    '}               *
+    NEXT b                                          '}****************
+  NEXT a                                                            '*
+WEND                                                                '*
+                                                                    '*
+'*- Program Closing -*************************************************
+
+Finish:
+CLS : COLOR 10: LOCATE 10, 10
+PRINT CHR$(34) + "Thanks for trying out my program." + CHR$(34)
+COLOR 9: LOCATE 12, 35: PRINT "-Timothy John Swan"
+LOCATE 13, 40: PRINT "Last edited: March 24, 2006"
+LOCATE 14, 40: PRINT "Questions? Call (815) 477-7211."
+COLOR 15: LOCATE 28, 1
+PRINT "Press enter to restart, or press another key to exit."
+key$ = INKEY$: WHILE key$ = "": key$ = INKEY$: WEND
+IF key$ = CHR$(13) THEN GOTO Introduction
+END
+
+'*- Keyboard Subroutine -*********************************************
+
+keyboard:
+IF key$ = CHR$(0) + "P" OR key$ = "2" THEN
+y = y + 10
+ELSEIF key$ = CHR$(0) + "M" OR key$ = "6" THEN : x = x + 10
+ELSEIF key$ = CHR$(0) + "H" OR key$ = "8" THEN : y = y - 10
+ELSEIF key$ = CHR$(0) + "K" OR key$ = "4" THEN : x = x - 10
+ELSEIF key$ = "7" THEN : x = x - 10: y = y - 10
+ELSEIF key$ = "9" THEN : x = x + 10: y = y - 10
+ELSEIF key$ = "1" THEN : x = x - 10: y = y + 10
+ELSEIF key$ = "3" THEN : x = x + 10: y = y + 10
+ELSEIF key$ = "," THEN
+  dotcolor = dotcolor - 1: IF dotcolor = 0 THEN dotcolor = 16
+ELSEIF key$ = "." THEN
+  dotcolor = dotcolor + 1: IF dotcolor = 17 THEN dotcolor = 1
+ELSEIF key$ = ";" THEN
+  erasecolor = erasecolor - 1: IF erasecolor = -1 THEN erasecolor = 16
+ELSEIF key$ = "'" THEN
+  erasecolor = erasecolor + 1: IF erasecolor = 17 THEN erasecolor = 0
+ELSEIF key$ = CHR$(13) THEN : CLS
+ELSEIF key$ = CHR$(27) THEN : a = 100
+ELSEIF key$ = "m" THEN
+  FOR b = 1 TO 100: PSET (INT(xdot(b)), INT(ydot(b))), colour2(b)
+  xdot(b) = x: ydot(b) = y: NEXT
+ELSEIF key$ = "n" THEN
+  FOR b = 1 TO 100: xspeed(b) = xspeed(b) * 2: yspeed(b) = yspeed(b) * 2: NEXT
+ELSEIF key$ = "l" THEN
+  COLOR 9: LOCATE 1, 14
+  IF orbit = 0 THEN
+  orbit = 1: PRINT "                 Orbit in motion.                 "
+  ELSE
+  orbit = 0: PRINT "                Orbit deactivated.                "
+  END IF
+ELSEIF key$ = "k" THEN
+  IF orbit = 0 THEN
+  COLOR 9: LOCATE 1, 14: PRINT "     Orbit center point, (     ,     ), set.      "
+  LOCATE 1, 40: PRINT INT(x): LOCATE 1, 46: PRINT INT(y)
+  xorb = x: yorb = y
+  ELSE
+  x = xorb: y = yorb: orbit = 0
+  COLOR 9: LOCATE 1, 14: PRINT "Orbit deactivated and moved to orbit center point."
+  END IF
+ELSEIF key$ = "j" THEN
+  key$ = INKEY$: WHILE key$ = "": key$ = INKEY$
+  FOR b = 1 TO 100
+  PSET (INT(xdot(b)), INT(ydot(b))), colour2(b)
+    IF xdot(b) <> x THEN
+      angle = ATN((ydot(b) - y) / (xdot(b) - x))
+      IF xdot(b) - x < 0 THEN angle = angle - 3.14
+      angle = angle + .1
+      save = COS(angle) * SQR(((ydot(b) - y) ^ 2) + ((xdot(b) - x) ^ 2)) + x
+      ydot(b) = SIN(angle) * SQR(((ydot(b) - y) ^ 2) + ((xdot(b) - x) ^ 2)) + y
+      xdot(b) = save
+    END IF
+      PSET (INT(xdot(b)), INT(ydot(b))), colour(b)
+  NEXT b
+  WEND: IF key$ = CHR$(27) THEN a = 100
+END IF
+RETURN
+
+'*- Orbit Subroutine -************************************************
+
+orbit:
+IF x = xorb THEN x = x + 1
+  angle = ATN((y - yorb) / (x - xorb))
+  IF x - xorb < 0 THEN angle = angle - 3.14
+  angle = angle + .02
+  IF angle > 6.28 THEN angle = .02
+  save = COS(angle) * SQR(((y - yorb) ^ 2) + ((x - xorb) ^ 2)) + xorb
+  y = SIN(angle) * SQR(((y - yorb) ^ 2) + ((x - xorb) ^ 2)) + yorb
+  x = save
+RETURN
+
+ 
+

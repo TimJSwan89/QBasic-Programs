@@ -1,0 +1,264 @@
+
+
+                             B I O S   C a l l s
+
+                          i n   Q u i c k B a s i c
+
+                         -A Programmer's Best Friend-
+
+
+
+
+
+
+
+
+                           Written by Aaron Severn
+    
+                              December 23, 1997
+
+
+
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+Table of Contents
+-----------------
+
+0 Disclaimer
+1 Introduction
+2 How to Perform BIOS Calls in QuickBasic
+3 A Few Examples
+  3.1 Mouse
+  3.2 SVGA
+  3.3 EMS
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+0 Disclaimer
+------------
+
+  I assume no responsibility for any harm that comes from using the material
+contained in this document to you, your computer, or anything relating to
+your existence.  No warranty is provided or implied with this information.
+This document is provided as is.
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+1 Introduction
+--------------
+
+  There's a lot of things I'm sure you'd like to do in your programs, but
+you likely just don't know where to start.  Just to use the mouse you'd
+have to write up a huge amount of code to read and interpret data from the
+mouse port, or would you?  Actually, that code has already been written,
+it's sitting in your computer's memory waiting for you to use it.  So how
+do you use it?  BIOS calls.
+
+  QuickBasic has a very handy command called CALL INTERRUPT (also CALL
+INTERRUPTX, I'll explain the difference later) which allows you to perform
+all the BIOS calls you could ever want.  You can do just about anything
+with BIOS calls, even draw graphics (although you wouldn't want to, they're
+kind of slow for that purpose).  So now I'll explain how.
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+2 How to Perform BIOS Calls in QuickBasic
+-----------------------------------------
+
+  Before you can begin, you need a set of registers.  That's what you use
+to tell BIOS exactly what you want to do.  First, start by defining a
+variable type in your program that looks like this.
+
+  TYPE RegType
+      AX AS INTEGER
+      BX AS INTEGER
+      CX AS INTEGER
+      DX AS INTEGER
+      BP AS INTEGER
+      SI AS INTEGER
+      DI AS INTEGER
+      FLAGS AS INTEGER
+      DS AS INTEGER
+      ES AS INTEGER
+  END TYPE
+
+  Those familiar with assembly will immediately recognize this and know what
+to do with it.  To the rest of you, don't worry, you really don't have to
+know what it means, just use it.
+
+  Once you've got that, you'll have to DIM an array of that type which will
+be used in your CALL INTERRUPT statements.  It should look something like
+this:
+
+  DIM Regs AS RegType
+
+  Now all you have to do is pop in the right values for the registers and pop
+that into CALL INTERRUPT.  Here's a very simple example, see below for better
+examples.  Here's what it does, first it changes to screen mode 13 using a
+BIOS call, then it fills the screen (using POKE, PSET won't work because
+QBasic thinks we're still in text mode), then it changes back to text mode
+using another BIOS call.
+
+  DEFINT A-Z
+
+  TYPE RegType                        'Define the registers
+      AX AS INTEGER
+      BX AS INTEGER
+      CX AS INTEGER
+      DX AS INTEGER
+      BP AS INTEGER
+      SI AS INTEGER
+      DI AS INTEGER
+      FLAGS AS INTEGER
+      DS AS INTEGER
+      ES AS INTEGER
+  END TYPE
+  
+  DIM Regs AS RegType                 'Create an array of registers
+
+  Regs.AX = &H13                      'BIOS call: interrupt &H10, AX = &H13
+  CALL INTERRUPT(&H10, Regs, Regs)    'changes to mode 13
+
+  DEF SEG = &HA000                    'Point to the graphics buffer
+  FOR i& = 0 to 63999
+     POKE i&, i& MOD 256              'Fill the screen
+  NEXT
+
+  DO: LOOP UNTIL INKEY$ <> ""         'Wait for a key
+
+  Regs.AX = &H3                       'BIOS call: interrupt &H10, AX = &H3
+  CALL INTERRUPT(&H10, Regs, Regs)    'changes to text mode
+
+  So that example isn't very useful, check out the ones below, you'll see
+where it becomes handy.  Still, that pretty nice, isn't it.
+
+  Anyway, I said I'd explain the difference between CALL INTERRUPT and CALL
+INTERRUPTX, so I'll do that now.  CALL INTERRUPT ignores the DS and ES
+registers, CALL INTERRUPTX uses those registers (as well as all the other
+ones).  So if you need to perform a BIOS call that uses the DS and ES
+registers, use CALL INTERRUPTX.
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+3 A Few Examples
+----------------
+
+  NOTE:  In all examples below it is assumed that the type RegType described
+in section 2 has been defined and that a variable Regs has been DIMmed of
+that type.
+
+3.1 Mouse
+---------
+
+  Most of you probably use a mouse routine that has been written in ASM for
+CALL ABSOLUTE.  Well, you can do it with CALL INTERRUPT too, here's a few
+mouse routines.
+
+  1. Reset the mouse to it's default position
+
+    Regs.AX = 0
+    CALL INTERRUPT(&H33, Regs, Regs)
+
+  2. Show the mouse
+
+    Regs.AX = 1
+    CALL INTERRUPT(&H33, Regs, Regs)
+
+  3. Hide the mouse
+
+    Regs.AX = 2
+    CALL INTERRUPT(&H33, Regs, Regs)
+        
+  4. Get the status of the mouse
+
+    Regs.AX = 3
+    CALL INTERRUPT(&H33, Regs, Regs)
+
+    leftMouseButton = Regs.BX AND 1             'These values are
+    rightMouseButton = (Regs.BX AND 2) \ 2      'placed in Regs by BIOS
+    middleMouseButton = (Regs.BX AND 4) \ 4     'when you perform the
+    xPosition = Regs.DX                         'call.
+    yPosition = Regs.CX
+
+  5. Move the mouse to a new place on the screen
+
+    Regs.AX = 4
+    Regs.CX = newYPosition
+    Regs.DX = newXPosition
+    CALL INTERRUPT(&H33, Regs, Regs)
+
+  6. Define a range on the screen that the mouse 'lives' in
+
+    Regs.AX = 7
+    Regs.CX = minimumXValue
+    Regs.DX = maximumXValue
+    CALL INTERRUPT(&H33, Regs, Regs)
+
+    Regs.AX = 8
+    Regs.CX = minimumYValue
+    Regs.DX = maximumYValue
+    CALL INTERRUPT(&H33, Regs, Regs)
+
+  7. Set the sensitivity of the mouse (how fast it moves)
+
+    Regs.AX = 15
+    Regs.CX = xSpeed                'Mouse moves faster as these values
+    Regs.DX = ySpeed                'are decreased.
+    CALL INTERRUPT(&H33, Regs, Regs)
+
+
+3.2 SVGA
+--------
+
+  Yes, this too can be done with BIOS calls.  This will only be a short
+example showing how to set a VESA SVGA screen mode.
+
+  Regs.AX = &H4F02
+  Regs.BX = SVGAMode
+  CALL INTERRUPT(&H10, Regs, Regs)
+
+  Here's a little SVGA mode info, put the following values in for SVGAMode:
+    &H100 - 640x400x256
+    &H101 - 640x480x256
+    &H103 - 800x600x256
+    &H105 - 1024x768x256
+    &H107 - 1280x1024x256
+
+  Just so you can see that it works I'll give you an SVGA PSET routine that
+I wrote.  This routine assumes that a variable called curBank is global
+(defined by COMMON SHARED or DIM SHARED) and is available to the routine.
+Also, make sure you make the xResolution a long integer so that the math
+will work (put an & on the end of it, for example, if xResolution is 640,
+use 640&).
+
+  offset& = y * xResolution& + x
+  bank = offset& \ &H10000
+  offset& = offset& - &H10000 * bank
+
+  IF bank <> curBank THEN
+    curBank = bank
+    Regs.AX = &H4F05
+    Regs.BX = 0
+    Regs.DX = 16 * curBank
+    CALL INTERRUPT(&H10, Regs, Regs)
+  END IF
+
+  DEF SEG = &HA000
+  POKE offset&, clr
+  
+3.3 EMS
+-------
+
+  Just a quick examples to return how much EMS memory is available.
+
+    Regs.AX = &H4200
+    CALL INTERRUPT(&H67, Regs, Regs)
+
+    numberOfFreePages = Regs.BX
+    totalNumberOfPages = Regs.DX
+
+  This, of course, doesn't really make use of EMS, so it's kind of useless,
+but I've been writing for over an hour now, so I'm just going to leave it at
+that.
+

@@ -1,0 +1,346 @@
+
+-----------------------------------------------------------------------------
+        Mode 13 VGA (320x200x256) GET/PUT Information and Techniques
+
+                  By Andrew L. Ayers - September 9th, 1996
+
+-----------------------------------------------------------------------------
+
+The following is what I have found out through trial and error (as well as
+a bit of logical guesswork). While I have found it to work on every machine
+I have tried it with, do not assume it is so for your machine. Instead, pro-
+ceed with caution. While none of this should cause major problems (ie. I do
+not believe it will trash your machine or anything), a wrong step could cause
+your machine to lock up, forcing you to reboot. Anyway, this is intended for
+informational purposes only. I cannot be held responsible for the use/abuse
+of the information contained herein, nor can I be held responsible for any
+damage done to the person or the machine on which the examples contained in
+this document are run upon. Just the standard disclaimer to CMA!
+
+If you find this information useful, and choose to include the techniques in
+your own code, please be kind and mention my name. You don't have to do this
+(hell, if I mentioned everyone's name I have learned from, that list would be
+a mile long!), but it would be nice.
+
+I wish to thank Jason Grooms - for guiding my first steps into the wonderful
+world of assembler (back then, 6809), and to Brent Dill, for showing me how
+to do strange and crazy stuff with GET/PUT, and a host of other tips. Brent,
+if your read this, contact me. I'm on the 'Net. I know you are worth your
+salt to find me. L8r!
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+Calculating the buffer size for GET/PUT in mode 13:
+
+1. Take the width of the area you are getting (in pixels) and multiply it
+   by the height (in lines). This will give you the total number of bytes
+   in the area for the buffer.
+
+2. Find the total number of WORDs to use by dividing the number of bytes by
+   two. We need the total number of WORDs because the smallest variable type
+   we can use is an integer, which is WORD size (2 bytes).
+
+3. We now have the amount of space needed to store the area we want to GET.
+   But BASIC needs a couple of more pieces of information in order for GET
+   and PUT to operate correctly. These two pieces of information are the
+   width and the height of the image! It needs these two items in order for
+   the PUT routine to know when to stop drawing. So, the width and the
+   height of the image area must be stored with the image data itself. These
+   two values are placed into their own WORDs at the start of the buffer. We
+   must add on two WORDs to accomodate this.
+
+4. We now have the total number of WORDs needed to DIMension an integer array
+   to hold our image data. Because the base of the array starts at zero, we
+   will subtract one from our total number of WORDs to DIMension our array:
+
+	DIM buffer%(# of WORDs)
+
+5. Our buffer data layout looks like so:
+
+	WORD	DESCRIPTION
+	----	--------------------------------------------------
+	   0	Width, contained in the high byte of the WORD.
+		This value is in bits (!), and so must be divided
+		by 8 to find out the number of pixels (bytes).
+	   1    Height, contained in the high byte of the WORD.
+		Value in number of lines.
+	   2	Start of data...
+	   .
+	   .
+	   .
+	  XX	End of data...
+
+Example:
+
+1. We have a 16x16 sprite. So we need 256 bytes in order to hold an area this
+   big.
+
+2. We need the number of WORDs, so we divide by 2, giving us 128 WORDs.
+
+3. We add two words to accomodate the width and height values needed by PUT,
+   giving us a total of 130 WORDs.
+
+4. We subtract 1, and dimension our array:
+
+	DIM buffer%(129)
+
+5. Our buffer data layout looks like so:
+
+	WORD	DESCRIPTION
+	----	--------------------------------------------------
+	   0	Width, contained in the high byte of the WORD.
+		This value is in bits (!), and so must be divided
+		by 8 to find out the number of pixels (bytes).
+	   1    Height, contained in the high byte of the WORD.
+		Value in number of lines.
+	   2	Start of data...
+	   .
+	   .
+	   .
+	 129	End of data...
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+Multiple Image Buffers for GET/PUT:
+
+What was shown above was an example for a simple buffer to hold a single
+image to be used in GET/PUT. Using the above simple example, we would just do the
+following
+
+		GET(0,0)-(15,15),buffer%
+		PUT(100,100),buffer%,PSET
+
+in order to GET/PUT a single simple image. But what if we needed 30 sprites
+(say for a game)? We could do this
+
+		DIM buffer1%(129), buffer2%(129),...,buffer30%(129)
+
+then use GET/PUT to move everything around, but this is wasteful, and not
+very easy to work with. What if we wanted animation? What then?
+
+Fortunately, there is an easy way out, using what is called offsetting. We
+have a buffer of a set size we are GETing and PUTing with. What isn't being
+shown is what is called the offset. An offset is a number added to a fixed
+value to obtain a new start value. When we dimension an array, the start of
+that array is obtained and kept by BASIC (we can use VARSEG and VARPTR to
+find it if we wanted to). If we say DIM a%(20), then say a%(2)=15, we have
+used an offset of 2 from the start of the array and placed 15 at that pos-
+ition in memory. A similar thing is done by GET/PUT. Note the following:
+
+		DIM buffer%(129)
+		GET(0,0)-(15,15),buffer%
+
+is the same as:
+
+		DIM buffer%(129)
+		GET(0,0)-(15,15),buffer%(0)
+
+We just didn't use the offset of zero in the first example! What would happen
+if we did the following?:
+
+		DIM buffer%(129)
+		GET(0,0)-(15,15),buffer%(10)
+
+We would get an error. This is because we need 130 WORDs of space for the
+area we are trying to GET, and we only have a total of 130 WORDs to play
+with. By trying to put an offset of 10 into the mix, we overrun the end of
+the array by 10 WORDs! The following would work:
+
+		DIM buffer%(139)
+		GET(0,0)-(15,15),buffer%(10)
+
+Now WORD number 10 would hold our width and WORD number 11 our height, and
+12 through 139 would hold our data. We could then PUT(100,100),buffer%(10),PSET
+and everything would work fine. Now what would happen if we PUT(100,100),
+buffer%(0),PSET? We would either get an error or garbage, because PUT wouldn't
+have the correct width and height info in the first two WORDs! So, we need
+to keep track of the size so we know what offsets we can use when GETing and
+PUTing our images.
+
+Our example is a 16x16 sprite. We would like to have 30 of these for our
+ultra cool game we are writing. We need 130 WORDs for each of these sprites
+(2 for width/height, 128 for data), and we want 30 sprites, so we need a
+buffer that is 3900 WORDs long (130 WORDs x 30 sprites). We know that every
+130 WORDs is a new sprite, so that will be our offset. If we set our offset
+to 0, then we are on the first sprite, 130 is the second, 260 is the third,
+and so on. The following shows how:
+
+		DIM sprite%(3899)
+		spritenum%=2
+		GET(0,0)-(15,15),sprite%(spritenum%*130)
+		spritenum%=5
+		PUT(100,100),sprite%(spritenum%*130),PSET
+
+Before you can put a sprite, you obviously need to GET it, so that PUT has
+the width/height info to work with. So lines 4 and 5 wouldn't work in our
+example unless we changed line 2 to "spritenum%=5".
+
+We now have an easy way to GET/PUT a whole mess of sprites on the screen
+using a single buffer that is easily accessible. We could do simple animation
+with this system. Say our first five sprites were already in the buffer and
+they were an animation of some type. To flip through them, we would do the
+following:
+
+		FOR spritenum%=0 TO 4
+		  PUT(100,100),sprite%(spritenum%*130),PSET
+		NEXT spritenum%
+
+It is that easy.
+
+Our buffer layout now looks like this, for those interested:
+
+	WORD	DESCRIPTION
+	----	--------------------------------------------------
+	   0	Width, contained in the high byte of the WORD.
+		This value is in bits (!), and so must be divided
+		by 8 to find out the number of pixels (bytes).
+	   1    Height, contained in the high byte of the WORD.
+		Value in number of lines.
+	   2	Start of sprite0 data...
+	   .
+	   .
+	   .
+	 129	End of sprite0 data...
+
+	 130	Width, contained in the high byte of the WORD.
+		This value is in bits (!), and so must be divided
+		by 8 to find out the number of pixels (bytes).
+	 131    Height, contained in the high byte of the WORD.
+		Value in number of lines.
+	 132	Start of sprite1 data...
+	   .
+	   .
+	   .
+	 259	End of sprite1 data...
+
+	 260	Width, contained in the high byte of the WORD.
+		This value is in bits (!), and so must be divided
+		by 8 to find out the number of pixels (bytes).
+	 261    Height, contained in the high byte of the WORD.
+		Value in number of lines.
+	 262	Start of sprite2 data...
+	   .
+	   .
+	   .
+	 389	End of sprite2 data...
+
+And so on...
+
+The only other thing you need to keep in mind is buffer size versus sprite
+size. As noted before, a 16x16 sprite needs 130 WORDs in order to store it
+completely in an array. When you have multiple sprites in an array, there
+is a limit to the size of your array you can have. This limit is 64K - 65536
+bytes, or 32768 WORDs. To find out how many sprites you can store in a single
+array, divide 32768 by the number of WORDs required for each sprite. Drop any
+values after the decimal (that is, take the integer, drop the remainder), and
+this is the maximum number of sprites you can store. For our example of a
+16x16 sprite (130 WORDs), this works out to be 252 sprites. Take that number
+and multiple by the number of WORDs per sprite, subtracting 1, to use for
+DIMensioning the array: DIM buffer%(32759).
+
+The following table breaks down common sprite sizes and array dimensions:
+
+	Sprite Size  Number  Array Size (in WORDs)
+	-----------  ------  ---------------------------------
+	   8 x 8       963   34 for sprite, 32741 for array
+	  16 x 16      252   130 for sprite, 32759 for array
+	  32 x 32       63   514 for sprite, 32381 for array
+	  64 x 64       15   2050 for sprite, 30749 for array
+
+If you need more sprites, you can split them over two arrays. Animation and
+such becomes more difficult to handle, but it can be done. 
+
+Also remember, the larger the sprite, the more data the computer has to shove
+around. Stay away from the 64 x 64 sprites, except for maybe big bosses or
+such. These things are memory HOGS. The only other limit to be aware of is
+QBASIC's 160K limit on program AND code size. One buffer of sprites (252
+sprites) will eat almost 64K, leaving you with less than 100K to put the
+rest of your code in! QuickBASIC and PowerBASIC users shouldn't have any
+problem though. Some of these problems may be overcome by using EMS routines
+to shove the sprite data into extended memory, though.
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+GETing and PUTing without The BOX:
+
+If you have ever used GET and PUT, you know that when you PUT, a "box" is
+left around your image obliterating anything under and around your sprite.
+This looks very ugly and unprofessional in a game. The following shows the
+best way to get rid of this problem, using a method called sprite masking.
+
+1. First, for each and every sprite you create, create a "mask" for it. This
+   mask is the same size and shape as the original sprite, only it consists
+   of only two colors, 0 and 255 (or &H0 and &HFF for you hex folks). Color
+   all visible portions of the sprite (those portions you want to obscure
+   the background) with color 0. Color all invisible portions of the sprite
+   (those protions you want the background to show through) with color 255.
+   Remember, you need one mask for each sprite, and this will knock your
+   sprite count down by half, so keep it in mind when designing your game.
+
+2. To display your sprite, simply PUT the mask image down using the AND op-
+   erator, then place the sprite image down using the OR operator. The AND
+   and OR operators are called bitwise boolean operators, and have the
+   following truth tables:
+
+	        AND			OR
+	-------------------	-------------------
+	IN1	IN2	OUT	IN1	IN2	OUT
+	-------------------	-------------------
+	0	0	0	0	0	0
+	1	0	0	1	0	1
+	0	1	0	0	1	1
+	1	1	1	1	1	1
+
+   These tables basically mean the following. If you take two bits and AND
+   or OR them together, the result equals a 1 or a 0 depending on the inputs
+   and the relationship between them in the truth tables for the operator in
+   question. If you understand this - read on. If you understand this and
+   are 10 - 14 years old, you don't need college (just kidding ;).
+
+   Now, for what we are doing, we have a background of different byte values
+   (which consist of a series of bits). Our mask only has two values in it,
+   the byte 0 (00000000 in binary) and the byte 255 (11111111 in binary).
+   Let me show you how the magic works:
+
+   A.	Our Background Image	AND	Mask	=	Result
+
+	11110110		      11111111		11110110
+	11110110		      11000011		11000010
+	11110110		      11000011		11000010
+	11110110		      11000011		11000010
+	11110110		      11111111		11110110
+
+  B.	Our Result	       OR      Sprite	=	Result
+
+	11110110		      00000000		11110110
+	11000010		      00111100		11222210
+	11000010		      00111100		11222210
+	11000010		      00111100		11222210
+	11110110		      00000000		11110110
+
+  If you notice, I have used 2s in place of 1s on the final result to show
+  the example better. Those 2s should really be 1s, so don't let that throw
+  you. Suffice to say, if you look carefully, we have placed our 8 x 5
+  sprite on the background, without the border showing.
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+GETing and PUTing without The BOX, method 2:
+
+The next best way to GET and PUT without the box showing, is to simply not
+draw those pixels in the first place. The only way to do that (short of mod-
+ifying BASIC itself) is to write your own PUT routine, to skip over any pixel
+of a defined color (0 in our case). This would have two advantages: Number
+one, your sprite could be drawn faster because you only set the pixels you
+need, and number two, you wouldn't double your buffer requirements for 
+sprites because you would only need the sprites, and could eliminate the
+masks! All sounds good until you try to write the thing in BASIC...it is
+horribly slow (ok, on a fast system, it runs at an acceptable pace). The only
+way to get around this is to code it in a lower level language (or at least
+one that can compile down to a faster version). I have done this, and you
+can find the results of my labor in the ABC Packets. It is called the Blast!
+library. It allows you to do the above, and much more. Check it out!
+
+
+
+

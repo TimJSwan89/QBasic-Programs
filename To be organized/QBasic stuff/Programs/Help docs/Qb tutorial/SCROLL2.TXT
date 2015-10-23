@@ -1,0 +1,202 @@
+
+Tile-by-tile Scrolling
+
+by Entropy
+
+
+A scrolling engine is the foundation for most RPGs. There are 
+three types of scrolling: tile-by-tile, pixel-by-tile-by-pixel-by-tile, 
+and pixel-by-pixel. Tile-by-tile is scrolling by moving the 
+screen one tile over, then drawing the tiles in the empty 
+space. It is common in QBasic RPGs because it is so simple, 
+but it looks very choppy. Pixel-by-tile-by-pixel-by-tile means 
+scrolling tile-by-tile one pixel at a time, like Dragon Warrior 
+style RPGs. Pixel-by-pixel scrolling is scrolling only one pixel 
+per key press. This is very complicated because it can leave 
+different sections of tiles on the screen. It is what is used in 
+more advanced RPGs like Chrono Trigger and FFVII. Usually, 
+when people talk about pixel-by-pixel scrolling, they mean 
+pixel-by-tile-by-pixel-by-tile scrolling.
+For this tutorial I will use the following variables:
+
+DIM SHARED xscreensize AS INTEGER 'tiles from your 
+character to edge of screen
+DIM SHARED yscreensize AS INTEGER 'tiles from your 
+character to edge of screen
+DIM SHARED xmapsize AS INTEGER 'map x-size
+DIM SHARED ymapsize AS INTEGER 'map y-size
+DIM SHARED x AS INTEGER 'x-coordinate of character
+DIM SHARED y AS INTEGER 'y-coordinate of character
+DIM SHARED Tiles(0,0) AS INTEGER 'array holding tiles
+DIM SHARED Map(0,0) AS INTEGER 'array holding msp
+DIM SHARED Char(0) AS INTEGER 'array holding character 
+tile
+DIM SHARED Mask(0) AS INTEGER 'array holding character 
+mask
+DIM SHARED Undertile(0) AS INTEGER 'array holding tile 
+under character
+DIM SHARED Scroll(32001) AS INTEGER 'used to scroll 
+screen
+
+Note: I am only using one character frame and one mask for 
+simplicity.
+Now we begin. To reduce to amount of math needed, we will 
+make
+
+xscreen = xscreensize * 2 + 1
+yscreen = yscreensize * 2 + 1
+
+These are the total number of tiles display on the screen in 
+each direction. You use that equation because it's the number 
+of tiles on both sides of the character, plus the one the 
+character is on.
+I'm not going to explain how to load the map and tiles. You 
+can to that by yourself. Just make sure the tiles are GETted, 
+and the map is stored with the y-coordinates in the first 
+dimesion and the x's in the second.
+Before we start scrolling, we need to draw the screen. This is 
+most easily done by:
+
+x = xscreensize + 1 y = yscreensize + 1 FOR x1 = 0 TO 
+xscreen - 1
+ FOR y1 = 0 TO yscreen -1
+  x2 = x + x1 - xscreensize
+  y2 = y + y1 - yscreensize
+  IF x2   IF x2 > xmapsize THEN x2 = x2 - xmapsize
+  IF y2   IF y2 > ymapsize THEN y2 = y2 - ymapsize
+  PUT (16 * x1, 16 * y1), Tiles(0, Map(y2, x2)), PSET
+ NEXT
+NEXT
+
+Here's what that means. X and Y are set to be in the top-left 
+corner so that they are as close to the corner as possible 
+without any wrap-around. The FOR...NEXT loops go from left 
+to right and top to bottom across the screen. The x2 and y2 = 
+lines determine which part of the map to show. Those 
+euqations are used because x and y are the xscreensize + 1 
+and yscreensize + 1 tiles from the top-left corner shown. 
+Subtracting x- and y-screensize gives you the first tiles, and 
+adding x1 and y1 give you the tile shown. The next four lines 
+just check for wrap-around (going from one edge of the map to 
+the other). If the tile is too far up, down, left, or right to fit on 
+the map, it wraps around to the other side. The PUT line 
+shows the correct tile in the correct position. 16 * x1 and y1 
+are used to tile the tiles correctly, since 16 is the x and y 
+tilesize. Map(y2, x2) is the tile number to use, and Tiles(0, 
+tilenumber) is the actual tile.
+Now here's the actual scrolling engine:
+
+DO
+ GET(16 * xscreensize, 16 * yscreensize)-(16 * xscreensize + 
+15, 16 * yscreensize + 15), Undertile
+ PUT(16 * xscreensize, 16 * yscreensize), Mask, AND
+ PUT(16 * xscreensize, 16 * yscreensize), Char, OR
+
+This GETs the tile under the character and shows the 
+character using a masking technique. 16 * x- and y-screensize 
+is used because it's the x- and y-screensize row and 
+column,and 16 is the tilesize.
+
+ DO
+  a$ = INKEY$
+ LOOP UNTIL a$ ""
+
+Waits for a keypress...
+
+ IF a$ = CHR$(27) THEN END
+
+CHR$(27) is Esc.
+
+ PUT(16 * xscreensize, 16 * yscreensize), Undertile, PSET
+Shows what's under the character.
+
+ IF a$ = CHR$(0) + "H" THEN
+
+CHR$(0) + "H" is the up arrow.
+
+  y = y - 1
+  IF y 
+Changes the y coord and checks for wrap-around.
+
+  GET (0, 0)-(16 * xscreen - 1, 16 * yscreen - 17), scroll
+  PUT (0, 16), scroll, PSET
+
+GETs the whole screen, except the bottom row into the array 
+and moves it down one tile. 16 * xscreen - 1 is used because 
+there are xscreen columns, starting at 0 (so from 0 to xscreen-
+1). Adding 15 (because the tilesize is 16, so it goes for 15 tiles 
+plus the one it starts at) to 16 * (xscreen - 1) is the same as 16 
+* xscreen - 1. The y part is the same, except you exclude one 
+tile, so you subtract 16 more.
+
+  y2 = y - yscreensize
+  IF y2   FOR x1 = 0 TO xscreen - 1
+   x2 = x + x1 - xscreensize
+   IF x2    IF x2 > xmapsize THEN x2 = x2 - xmapsize
+   PUT (16 * x1, 0), Tiles(0, Map(y2, x2)), PSET
+  NEXT
+ END IF
+
+This is just like the original screen-drawing, but with only one 
+row of tiles begin shown. And that's it for one direction. The 
+rest are the same, with a few different numbers.
+
+ IF a$ = CHR$(0) + "P" THEN
+  y = y + 1
+  IF y > ymapsize THEN y = y - ymapsize
+  GET (0, 16)-(16 * xscreen - 1, 16 * yscreen - 1), scroll
+  PUT (0, 0), scroll, PSET
+  y2 = y + yscreensize
+  IF y2 > ymapsize THEN y2 = y2 - ymapsize
+  FOR x1 = 0 TO xscreen - 1
+   x2 = x + x1 - xscreensize
+   IF x2    IF x2 > xmapsize THEN x2 = x2 - xmapsize
+   PUT (16 * x1, 16 * yscreen - 16),Tiles(0, Map(y2, x2)),PSET
+  NEXT
+ END IF
+
+Down. The only differences are that y increases, it GET 
+everything but the row and PUTs it at the top row, at the new 
+tile row is at the bottom row.
+
+ IF a$ = CHR$(0) + "K" THEN
+  x = x - 1
+  IF x   GET (0, 0)-(16 * xscreen - 17, 16 * yscreen - 1), scroll
+  PUT (16, 0), scroll, PSET
+  x2 = x - xscreensize
+  IF x2   FOR y1 = 0 TO yscreen - 1
+   y2 = y + y1 - yscreensize
+   IF y2    IF y2 > ymapsize THEN y2 = y2 - ymapsize
+   PUT (0, 16 * y1), Tiles(0, Map(y2, x2)), PSET
+  NEXT
+ END IF
+
+Left. This one's different because it changes x instead of y. 
+But, everything is the same as moving up, except the math is 
+switched between x and y.
+
+ IF a$ = CHR$(0) + "M" THEN
+  x = x + 1
+  IF x > xmapsize THEN x = x - xmapsize
+  GET (16, 0)-(16 * xscreen - 1, 16 * yscreen - 1), scroll
+  PUT (0, 0), scroll, PSET
+  x2 = x + xscreensize
+  IF x2 > xmapsize THEN x2 = x2 - xmapsize
+  FOR y1 = 0 TO yscreen - 1
+   y2 = y + y1 - yscreensize
+   IF y2    IF y2 > ymapsize THEN y2 = y2 - ymapsize
+   PUT (16*xscreen-
+16,16*y1),Tiles(0,Map(y2,x+xscreensize)),PSET
+  NEXT
+ END IF
+
+Right. Same as down, but switching x and y.
+
+LOOP
+
+Remember, this is the simplist form of tile-by-tile scrolling. I did 
+not include things like entering buildings, detecting whether 
+you can move into your new location (you shouldn't be able to 
+walk into walls), battles, or things that happen when you don't 
+move, like moving water or NPCs. All of these things should 
+be put in an RPG.

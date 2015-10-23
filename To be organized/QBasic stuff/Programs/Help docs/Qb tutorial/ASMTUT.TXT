@@ -1,0 +1,332 @@
+
+Assembly Language Tutorial v0.3
+For Intel's 80286 Processor
+by: Milo Sedlacek and Drew Vogel
+
+Dear Reader, 
+
+The purpose of this tutorial is to familiarize you with
+the 8086 processor registers, accessing modes and
+architecture so you'll eventually be able to interface
+QuickBasic 4.5 with Assembly Language.
+
+Knowledge of Hexidecimal and Binary numbers is assumed.
+
+Now let's go over the parts of the computer...
+
+there's:
+
+1. main memory
+2. the processor
+3. peripherals attached on the bus
+
+Basically, the processor performs operations on memory
+and reads and writes to the peripherals.
+
+So let's take a look at what registers are in the 8086
+
+General Purpose Registers:
+AX
+BX
+CX
+DX
+
+OK first let's talk about what these do, and what they
+are.  First of all, they are 16 bits wide, and they
+are split into 2 parts, the low and high byte.  Actually,
+you could pretend that there are this many general
+purpose registers:
+
+AX AH AL
+BX BH BL
+CX CH CL
+DX DH DL
+
+Now, AH is the high byte of AX, so if I set AL to 0 and
+AH to 1 then AX will be 256
+
+AX = AH * 256 + AL
+
+That's the way the _X and hi / low registers are related.
+
+So basically you can access a general purpose register
+in its 16-bit entirety or in its 8 bit high and low
+parts. Note that if you put a value in _L or _H it affects _X.
+
+Basically these registers just hold temporary values and
+are used for calculations, loop counters and so on.
+
+Let's move on to other registers now!
+
+;-------------------------------------------------
+;other regs will be here when we reg them wrote up
+;-------------------------------------------------
+
+OK, now it's time to learn some assembly instructions
+
+In oder to understand instructions you need to know what an operand is.
+Here's the shorest and easiest to understand definition:
+
+operand(s): values after the instruction
+
+
+First I'll teach you MOV (doesn't have to be in caps, I just do
+that to seperate instructions from other stuff) since it's probably
+the easiest to understand and definately the most commonly used
+instruction. The syntax for MOV is:
+
+  MOV detsination, source
+
+MOV just moves the value of 'source' to 'destination', so 'MOV AL, 0005h'
+would place 0005h into AL. Both operands can be registers, 'destination'
+can be a literal expression and either (but not both) operands can be a
+variable, or memory, but we'll get into variables and memory later.
+
+Well, Since MOV is pretty useless by itself you probably want to learn
+some more instructions, so we'll move on to INC and DEC. Herte's the syntax:
+
+  INC value
+  DEC value
+
+INC simply adds 1 to 'value' and DEC subtracts 1 from 'value' where value is
+either a register, variable, or memory. Ok, here's a little quiz.
+
+  MOV AX, 0010h
+  INC AX
+  DEC BX
+  INC AX
+
+What be the value of AX? If you said 0012h then your right. Good thing you
+didn't fall for my little trick of sticking 'DEC BX' in there which has nothing
+to do with the value of AX.
+
+What's that you say? You don't want to have 2 zillion INC's and DEC's in your
+code? Well me either, and obviously Intel didn't like that idea either since
+they made us ADD and SUB. Syntax:
+
+  ADD destination, source
+  SUB destination, source
+
+Ok, ADD just adds the value of 'source' to 'destination' and stores the result
+in 'destination'. SUB subtracts the value of 'source' from 'destination' and
+stores the result in 'destination'. ADD and SUB have the same operand rules as
+MOV which you should remember (if you don't read it over and over until you do).  ]
+Your really gonna hate me now, time for another quiz:
+
+  MOV DX, 0012h
+  MOV BX, 0006h
+  SUB DX, AX
+  DEC DX
+  INC BS
+  ADD DX, BX
+
+If you think the value of DX is 0012h then your right. Damn your good. Right
+now you probably saying, whoppdy do da, this is really gonna help me. Well
+I know this is going kinda slow, but you need to know all these little things
+in order to do anything useful.
+
+Alrighty, here's how to multiply!
+
+there are 2 ways you can multiply:
+
+8 bit * 8 bit to yield a 16 bit result, or 16 bit * 16 bit to yield a 32 bit
+result.
+
+Multiplying 8 bit by 8 bit.
+
+To set up for a MUL instruction, one of the numbers to be multiplied must
+be in the AL register and the other number can be in any other 8 bit general
+purpose register.
+
+Example:
+
+MOV AL,10
+MOV DL,20
+MUL DL
+
+And the result will be in AX.
+
+Multiplying 16 bit by 16 bit.
+
+To set up for a 16 bit multiply instruction, one of the numbers must be in
+the AX register and the other number can be in any other 16 bit register:
+
+Example:
+
+MOV AX,320
+MOV CX,10
+MUL CX
+
+And the result will be in AX:DX where AX is the low word of the result and
+DX is the high word.
+
+And now onto dividing!
+
+When dividing, you either divide a 16 bit number by an 8 bit number or a
+32 bit number by a 16 bit number.
+
+Dividing a 16 bit number by an 8 bit number:
+
+The number to divide is to be in AX.  The number to divide by (the
+denominator) can be in any 8 bit register.  The qotient is returned in AL
+and the remainder in AH.
+
+Example:
+
+MOV AX,100
+MOV CL,2
+DIV CL
+
+In a 32 bit by 16 bit divide, place the number to be divided (the numerator
+in the AX:DX pair where AX is the low word).  Divide by any other 16 bit
+register.
+
+Example:
+
+MOV AX,0
+MOV DX,1   ;the ax:dx 32 bit pair now contains the value 65536
+DIV CX
+
+The quotient is returned in AX and the remainder in DX. 
+
+Ok, heres some juicy stuff! These next two instructions are the reason I
+NEVER use MUL and DIV. SHL and SHR (our two new 'wonder' instructions) are
+probably the best and hardest to understand instructions, put on your think
+cap for these. This is where knowledge of binary and hexidecimal numbers
+comes in handy (you might want to go out and get a TI-34 or better).
+Syntax:
+
+  SHL destination, value
+  SHR destination, value
+
+SHL shifts each bit in 'destination' left 2^'value' places (or digit) and
+SHR shift each bit in 'destination' right 2^'value' place. In other words,
+the breakdown of it is, they multiply and divide by powers of 2. Here, look
+at a few examples:
+
+  MOV AX, 0010b  ;'SHL destination, 1' multiplies destination by it's base
+  SHR AX, 1      ;so now AX holds 0001b (b = binary)
+
+  MOV CX, 2      ;ok, this example is like '2*(2^4)'
+  SHL CX, 4      ;I know it's hard, but it'll make sense eventually.
+
+Next comes IN and OUT. These are very useful, if you have a port reference that
+is. Yes, you guessed right boys and girls, IN and OUT recieve data from a port
+and write data to a port respectively. Syntax:
+
+  OUT destination, source
+  IN destination, source
+
+The thing I never understood about these (and a few other instructions) is that
+even if you provide a 'destination' and a 'source' they still use the port in
+DX and the value in AL. Maybe Milo can tell all of us why. Since you do need to
+know the port indexes to use these, I suppose I should provide you with at least
+a small list huh? Well I'll see what I can do.
+
+Ok, It's been a while since we've worked on this, this being for many reasons,
+and we're going to take off into the juicy stuff pretty rapidly so I'd suggest
+you make sure you understand the above info before continueing and unless you
+just started reading this tutorial then I'd also suggest at least skimming over
+it again!
+
+Before we begin I would suggest you go learn the internals of screen 13h and how
+it works. There will eventually be an explanation in the same zip as this tutorial
+but since this tutorial is aimed at teaching assembly programming, we'll stick to
+the language for now.
+
+Since we are teaching you howto use assembly with quickbasic, we should probably
+teach you how to call it from quickbasic. There are many ways to do this, but
+since you are just starting out we'll make it easy on you. We'll make a library
+full of all of our assembly routines from throughout the tutorial.
+
+We will be using TASM for our assembling. If you don't have TASM, MASM will probably
+work for most of our routines. I would suggest going out and getting TASM though.
+Here is a sample program to access screen 13h and then exit.
+
+  .MODEL SMALL           ;you can read up on MODELs in the TASM help file
+  .STACK 256             ;allocate space on the stack for PUSHs and POPs
+  .CODE
+
+  PUBLIC SET_SCREEN_13   ;let quickbasic call it
+
+  SET_SCREEN_13 PROC     ;start a procedure
+    MOV AX, 0013h        ;move 13h into ax
+    INT 0010h            ;call the video bios interrupt (read tutor on INTs)
+    RETF                 ;return from call
+  ENDP                   ;end the procedure
+
+  END                    ;tells the assembler to stop assembling
+
+You can write this in any text editor. Save it as 'tutor.asm' if you choose not to,
+you may have some problems down the line. Ok, you need to assemble this into a
+.obj (object) file by doing:
+
+  TASM tutor.asm
+
+Then (assuming the .obj file is already in your quickbasic directory) you need to
+link it liek this:
+
+  LINK /q tutor.obj
+
+You will be confronted by a few questions, here is an example:
+
+ Run File [MODE-X.QLB]: [Just Hit Return]
+ List File [NUL.MAP]: [Just Hit Return]
+ Libraries [.LIB]: BQLB.LIB
+
+Now to load your library just do:
+
+  QB /l tutor.qlb
+
+To call your new procedure just do:
+
+  CALL SET_SCREEN_13
+
+Ok, If it doesn't work then it's at your fault because we are double checking
+the sample code and directions for errors. Since this code is, more or less,
+impossible to see working, we'll quit write up another procedure.
+
+Here is why you should know how screen 13h works. If you've ever done a POKE
+routine for screen 13h in place of a PSET then you know ay least just enough
+to get by. To keep you interested though, without having to know screen 13h just
+yet, we'll make a simple routine to color in the pixel in the top left corner.
+I'm going to just make a PROC...ENDP in this on since you can stick this code
+into the library we've already started. Here's the code:
+
+  SETP PROC
+    MOV AX, 0A000h       ;screen segment
+    MOV ES, AX           ;you can't affect Segment Registers with imediate values
+    MOV DI, 0            ;clear DI
+    MOV AL, 2            ;color 2
+    MOV ES:[DI], AL      ;write color in AL to the screen
+    RETF                 ;return from call
+  ENDP
+
+Whoaa, what the hell is that ES:[DI] thing? Well, unless you know some assembly
+already, you're probably thinking something of this sort. Well my friend, this is
+how you point to memory. And we'll explain this in a few days. Please go learn how
+memory is set up (ie: segments and offsets). We will explain this eventually but
+once again, this tutorial is aimed at learning assembly, not much else.
+
+Ok, now that you've read up on memory and segments and offsets and all that other
+good stuff I suggested, we can move on. When you have something like ES:[DI], ES
+hold the segment and DI holds the offset to write to. Take the PSET routine above.
+ES held the segment of the screen (0A000h). And DI held 0 since we wanted to write
+to the very first pixel on the screen.
+
+Now that you understand how pointing to memory works, we can make a totally functional
+PSET routine, with paramaters for X, Y, and COLOR. This next step will be a big one.
+so maybe we should take it in two steps. How about this, you email me telling me
+which of the following you want to learn first, ok?
+
+1) Calculating Offsets & Complex/Fast Math
+2) Paramaters 
+  
+mkv@internetwis.com
+
+
+
+
+
+
+

@@ -1,0 +1,124 @@
+
+*** MOUSE PROGRAMMING, by Alex Warren ****************************************
+    
+Mouse programming is fairly easy - all you need to know are the various
+interrupts involved. First you will need to start QB/etc.  with the /L option
+- this loads the quick library which you will need to access the mouse
+functions. In your program you will need to put the following lines near
+the start:
+
+    REM $INCLUDE: 'QB.BI'
+    DIM inregs AS regtype, outregs AS regtype
+    
+You will now be ready to use the various mouse functions. Each mouse
+function is called using interrupt 33h, like this:
+
+    inregs.ax = n
+    CALL INTERRUPT (&H33, inregs, outregs)
+    
+where n is the function number.
+To initialize the mouse, use function 0, i.e.:
+
+    inregs.ax = 0
+    CALL INTERRUPT (&H33, inregs, outregs)
+    
+You will always need to execute these lines to get the mouse to work
+at all. These lines also detect whether a mouse is present, with the
+result returned in outregs. If outregs.ax=-1 after using the above
+lines, a mouse is present.
+
+Next you will probably want to show the mouse, so use function 1 and
+you should see your mouse shown as a grey block in SCREEN 0:
+
+    inregs.ax = 1
+    CALL INTERRUPT (&H33, inregs, outregs)
+
+In graphics modes the mouse is shown as an arrow.
+
+Now you'll want to know how to recognise mouse button clicks and how
+to find out the coordinates of the mouse pointer. To do this, use
+function 3. The following things are returned:
+
+    outregs.bx      will be the button clicked: 0 - no buttons
+                                                    clicked
+                                                1 - left button
+                                                2 - right button
+                                                3 - both buttons
+    outregs.cx      the x coordinate
+    outregs.dx      the y coordinate
+    
+The x and y coordinates are usually given as pixels, but in SCREEN 13
+you'll need to divide the outregs.cx value by 2 to get the x value. To
+get text coordinates, i.e. 80x25 if you're in SCREEN 0, divide
+outregs.cx and outregs.dx by 8, like this:
+
+    x = INT(outregs.cx / 8) + 1
+    y = INT(outregs.dx / 8) + 1
+    
+
+Here's an example program. It waits until the user clicks a button on
+the screen, and then exits. It uses the interrupt line in a SUB to
+save typing and program space. Note that if you do this you will need
+to make the inregs and outregs variables SHARED. (Sorry about the
+split LOOP line, you'll have to make that all one line if you paste
+it into QB)
+
+    ' Sample mouse program from BASIX Fanzine Issue 9
+    ' ** Remember to run QB with the /L option to load libraries **
+    '$INCLUDE: 'QB.BI'
+    DECLARE SUB mouse()
+    DIM SHARED inregs AS REGTYPE, outregs AS REGTYPE
+    SCREEN 13
+    inregs.ax = 0 : mouse
+    LINE(10, 10) - (50, 50), 10, B
+    inregs.ax = 1 : mouse
+    DO
+    inregs.ax = 3 : mouse
+    LOOP UNTIL outregs.bx = 1 AND (outregs.cx / 2 > 9 AND outregs.cx / 2
+                            < 51 AND outregs.dx > 9 AND outregs.dx < 51)
+    END
+    
+    SUB mouse()
+    CALL INTERRUPT (&H33, inregs, outregs)
+    END SUB
+    
+
+Important note about mouse programming: If you draw something to the
+screen where the mouse is you'll find the mouse wipes that bit of the
+screen when it is moved - try it. Use function 1 to display the mouse
+in SCREEN 13, PAINT the screen green then move the mouse. It leaves a
+black square behind - this is the area of the original black screen
+before it was PAINTed. To stop this happening, use function 2 to hide
+the mouse while making changes to the screen, then function 1 to show
+it again after the changes have been made. 
+
+You can set the mouse position using function 4, where inregs.cx is
+the x co-ordinate and inregs.dx is the y co-ordinate. For example, to
+set the mouse position to (30, 40) you would use:
+
+    inregs.ax = 4
+    inregs.cx = 30
+    inregs.dx = 40
+    CALL INTERRUPT (&H33, inregs, outregs)
+    
+(remember to multiply cx by 2 in screen 13)
+
+Finally, here are two more functions. They limit where the mouse can
+go so you can 'trap' it inside an area of screen. You'll need to use
+inregs.cx as x1 or y1, and inregs.dx as x2 or y2. The functions are:
+
+    7       Limit mouse on x-axis
+    8       Limit on y-axis.
+    
+So to trap the mouse between (5, 5) and (315, 195) in SCREEN 13, use
+this:
+
+    inregs.ax = 7           ' limit x-axis
+    inregs.cx = 10          ' i.e. 5*2
+    inregs.dx = 630         ' i.e. 315*2
+    inregs.ax = 8           ' limit y-axis
+    inregs.cx = 5
+    inregs.dx = 195
+    mouse
+    
+    

@@ -1,0 +1,25 @@
+
+Segments and Offsets
+--------------------
+by: Milo Sedlacek
+
+So here's how segments and offsets work.
+
+U have 2 things, a segment, and an offset.  Each is 16 bits in size, that
+means it can hold a value from 0-65535.  Back in the heyday of the
+Commodore 64, (which had 64k of RAM), a single 16 bit address could put
+you anywhere in memory.  But with the 8086 which had 1 meg, you could't
+do that with 16 bits!  'An the engineers didn't wanna do it with 32 bits,
+'cuz that would waste space.  So they decided to invent a curse called
+segments and offsets.  The CURSE goes like this:
+
+In order to calculate an actual address, multiply the segment by 16 and
+add the offset.
+
+address = segment * 16 + offset
+
+And with that scheme, programmers could access 1 meg!  Whoopie eh?
+
+There I explained it.  Sorry about my mood and writing style today.
+And who was it that didn't like my base 3 tutorial?  Huh???
+

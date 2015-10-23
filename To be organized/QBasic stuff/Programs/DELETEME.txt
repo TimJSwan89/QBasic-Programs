@@ -1,0 +1,104 @@
+'*- Introduction -****************************************************
+
+SCREEN 12
+CLS
+COLOR 10
+LOCATE 5, 4
+PRINT "Welcome to Pixel Blast!"
+LOCATE 7, 2
+PRINT "You may use the arrow keys to move around, this includes"
+PRINT "eight directions if you use the number pad on the right"
+PRINT "of the keyboard. Leave at any time by pressing"
+COLOR 12
+LOCATE 9, 48
+PRINT "ESC"
+COLOR 10
+LOCATE 9, 51
+PRINT "."
+COLOR 9
+LOCATE 11, 6
+PRINT "Press any key to continue."
+WHILE key$ = ""
+key$ = INKEY$
+WEND
+IF key$ = CHR$(27) THEN GOTO Finish
+
+'*- Set Arrays -******************************************************
+
+CLS
+RANDOMIZE TIMER
+x = 200
+y = 200
+DIM xspeed(100)
+DIM yspeed(100)
+DIM xdot(100)
+DIM ydot(100)
+DIM colour(100)
+
+'*- Pixel Engine -****************************************************
+                                                                    '*
+DO                                                                  '*
+  FOR a = 1 TO 100                                                  '*
+  key$ = INKEY$                                                     '*
+  IF key$ <> "" THEN GOSUB keyboard                                 '*
+  PSET (INT(xdot(a)), INT(ydot(a))), 0                              '*
+  xdot(a) = x                                                       '*
+  ydot(a) = y                                                       '*
+  xspeed(a) = RND * 2 - 1                                           '*
+  yspeed(a) = RND * 2 - 1                                           '*
+  colour(a) = INT(RND * 14) + 1                                     '*
+    FOR b = 1 TO 100                                                '*
+    PSET (INT(xdot(b)), INT(ydot(b))), 0                            '*
+    xdot(b) = xdot(b) + xspeed(b)                                   '*
+    ydot(b) = ydot(b) + yspeed(b)                                   '*
+    PSET (INT(xdot(b)), INT(ydot(b))), colour(b)                    '*
+    NEXT b                                                          '*
+  NEXT a                                                            '*
+LOOP                                                                '*
+                                                                    '*
+'*- Keyboard Subroutine -*********************************************
+
+keyboard:
+IF key$ = CHR$(0) + "P" OR key$ = "2" THEN
+y = y + 10
+ELSEIF key$ = CHR$(0) + "M" OR key$ = "6" THEN
+x = x + 10
+ELSEIF key$ = CHR$(0) + "H" OR key$ = "8" THEN
+y = y - 10
+ELSEIF key$ = CHR$(0) + "K" OR key$ = "4" THEN
+x = x - 10
+ELSEIF key$ = "7" THEN
+x = x - 10
+y = y - 10
+ELSEIF key$ = "9" THEN
+x = x + 10
+y = y - 10
+ELSEIF key$ = "1" THEN
+x = x - 10
+y = y + 10
+ELSEIF key$ = "3" THEN
+x = x + 10
+y = y + 10
+ELSEIF key$ = CHR$(27) THEN
+GOTO Finish
+ELSE
+END IF
+RETURN
+
+'*- Program Closing -*************************************************
+
+Finish:
+CLS
+COLOR 10
+LOCATE 10, 10
+PRINT "Thanks for trying out my program."
+COLOR 9
+LOCATE 12, 35
+PRINT "-Timothy John Swan, March 23, 2006"
+COLOR 15
+LOCATE 28, 1
+PRINT "Press any of them 'ol keys to go bye bye."
+WHILE INKEY$ = ""
+WEND
+END
+

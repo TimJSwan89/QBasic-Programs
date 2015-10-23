@@ -1,0 +1,435 @@
+SCREEN 12
+RANDOMIZE TIMER
+DIM array(28, 40)
+minThickness = 10
+minHeight = 10
+DO
+CLS
+leftSide = 1
+rightSide = 40
+topSide = 1
+bottomSide = 28
+eraseColor = INT(RND * 16)
+GOSUB CreateBackGround
+FOR a = 11 TO 15
+  FOR b = 16 TO 25
+    COLOR 0
+    LOCATE a, b * 2 - 1
+    PRINT "лл"
+    array(a, b) = 1
+  NEXT b
+NEXT a
+game = INT(RND * 11)
+'game = 10 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+COLOR 15
+IF game = 0 THEN
+  game$ = "Normal Game"
+ELSEIF game = 1 THEN
+  game$ = "Gravity SimulationGame"
+ELSEIF game = 2 THEN
+  game$ = "No Long Pieces    Game"
+ELSEIF game = 3 THEN
+  game$ = "Huge Game"
+ELSEIF game = 4 THEN
+  game$ = "Tiny Game"
+ELSEIF game = 5 THEN
+  game$ = "Skinny Game"
+ELSEIF game = 6 THEN
+  game$ = "Baby Mode"
+ELSEIF game = 7 THEN
+  game$ = "Slow Mode"
+ELSEIF game = 8 THEN
+  game$ = "Fast Mode"
+ELSEIF game = 9 THEN
+  game$ = "Lightning Mode"
+ELSEIF game = 10 THEN
+  game$ = "Upside down"
+END IF
+a = 0
+LOCATE 12, 32
+WHILE LEN(game$) > 18
+PRINT MID$(game$, 1, 18)
+game$ = MID$(game$, 19, LEN(game$) - 18)
+a = a + 1
+LOCATE 12 + a, 32
+WEND
+PRINT game$
+x = 15
+y = 8
+xold = x
+yold = y
+piece = INT(RND * 7)
+GOSUB pieceGenerator
+GOSUB movePiece
+WHILE INKEY$ = CHR$(27)
+WEND
+adios = 0
+fly = 1
+DO
+  DO
+    key$ = INKEY$
+  LOOP WHILE key$ = ""
+  GOSUB keyboard
+  IF adios THEN END
+  GOSUB movePiece
+LOOP WHILE key$ <> " "
+CLS
+IF game = 3 THEN
+  leftSide = 1
+  rightSide = 40
+  topSide = 1
+  bottomSide = 28
+ELSEIF game = 4 THEN
+  leftSide = 17
+  rightSide = 24
+  topSide = 11
+  bottomSide = 18
+ELSEIF game = 5 THEN
+  leftSide = 18
+  rightSide = 23
+  topSide = 1
+  bottomSide = 28
+ELSE
+  leftSide = INT(RND * (41 - minThickness)) + 1
+  rightSide = INT(RND * (42 - leftSide - minThickness)) + leftSide + minThickness - 1
+  topSide = INT(RND * (29 - minThickness)) + 1
+  bottomSide = INT(RND * (30 - topSide - minHeight)) + topSide + minHeight - 1
+END IF
+display = 1
+IF leftSide >= 11 OR topSide >= 6 THEN
+  dispY = 1
+  dispX = 1
+ELSEIF rightSide <= 32 OR bottomSide <= 23 THEN
+  dispY = 23
+  dispX = 32
+ELSE
+  display = 0
+END IF
+points = INT(RND * 6) * 25 + 25
+IF display THEN
+COLOR 15
+LOCATE dispY, dispX * 2 - 1
+PRINT "Next:"
+GOSUB updateDisplay
+END IF
+COLOR INT(RND * 8) + 1
+GOSUB BorderDraw
+direction = 0
+IF game = 10 THEN direction = 1
+adios = 0
+fly = 0
+IF game = 6 THEN
+  speed = 3
+  fly = 1
+ELSEIF game = 7 THEN
+  speed = 1.5
+ELSEIF game = 8 THEN
+  speed = .1
+ELSE
+  speed = .3
+END IF
+GOSUB piecePicker
+GOSUB pieceGenerator
+pieceOld = piece
+colourOld = colour
+DO
+jump = 0
+change = 0
+x = INT((rightSide - leftSide) / 2 + leftSide)
+y = topSide
+IF game = 10 THEN y = bottomSide - 1
+yold = y
+xold = x
+pieceNew = pieceOld
+GOSUB piecePicker
+GOSUB pieceGenerator
+IF display THEN
+  LOCATE dispY + 1, dispX * 2 - 1
+  PRINT "        "
+  LOCATE dispY + 2, dispX * 2 - 1
+  PRINT "        "
+  COLOR colour
+  FOR a = 1 TO 4
+    LOCATE y(a) + dispY + 1, (x(a) + dispX + 1) * 2 - 1
+    PRINT "лл"
+  NEXT a
+END IF
+pieceOld = piece
+piece = pieceNew
+GOSUB pieceGenerator
+IF game = 1 THEN
+  time2 = TIMER + .1
+  speed = .5
+ELSEIF game = 9 THEN
+  game9var = 1.2
+END IF
+WHILE INKEY$ <> ""
+WEND
+WHILE change = 0
+GOSUB movePiece
+IF change > 0 THEN : SOUND 350, .8: EXIT DO
+time = TIMER + speed
+WHILE jump = 0 AND time > TIMER
+  key$ = INKEY$
+  IF key$ <> "" THEN GOSUB keyboard: GOSUB movePiece
+  IF adios THEN EXIT DO
+  IF game = 1 THEN
+    IF time2 < TIMER THEN time2 = TIMER + .05: speed = speed - .02
+  END IF
+WEND
+IF game = 9 THEN
+ IF RND > game9var THEN jump = 1
+ game9var = game9var - .1
+END IF
+IF direction = 1 THEN
+y = y - 1
+ELSE
+y = y + 1
+END IF
+GOSUB movePiece
+IF change <> 0 THEN GOSUB pieceSetter
+WEND
+LOOP
+LOOP
+
+pieceSetter:
+top = topSide
+bottom = bottomSide
+left = leftSide
+right = rightSide
+stepper = 1
+IF direction = 1 THEN
+bottom = topSide
+top = bottomSide
+stepper = -1
+END IF
+FOR a = 1 TO 4: array(y(a) + y, x(a) + x) = colour: NEXT a
+FOR a = top TO bottom STEP stepper
+change = 0
+FOR b = left TO right
+IF array(a, b) = 0 THEN change = 1
+NEXT b
+IF change = 0 THEN
+points = points - (right - left + 1)
+GOSUB updateDisplay
+  FOR b = a TO top STEP -stepper
+    FOR c = left TO right
+      IF b = top THEN
+        array(top, c) = 0             '
+        COLOR eraseColor                           ' erases top line (last)
+        LOCATE top, c * 2 - 1         '
+        PRINT "лл"                        '
+      ELSE
+        SOUND 1000 - b * 10 + a * 150, .05
+        array(b, c) = array(b - stepper, c)     '
+        LOCATE b, c * 2 - 1               '
+        IF array(b, c) THEN               '
+          COLOR array(b, c)               ' shifts lines down (first)
+        ELSE                              '
+          COLOR eraseColor                         '
+        END IF                            '
+        PRINT "лл"                        '
+      END IF
+    NEXT c
+  NEXT b
+END IF
+NEXT a
+change = 1
+
+RETURN
+
+piecePicker:
+IF game = 2 THEN
+  piece = INT(RND * 6)
+ELSEIF game = 6 THEN
+  piece = INT(RND * 2) * 3 + 3
+ELSE
+  piece = INT(RND * 7)
+END IF
+RETURN
+
+updateDisplay:
+IF display THEN
+COLOR 15
+LOCATE dispY + 3, dispX * 2 - 1
+PRINT "Points:"
+LOCATE dispY + 4, dispX * 2 - 1
+PRINT "        "
+LOCATE dispY + 4, dispX * 2 - 1
+PRINT points
+END IF
+IF points <= 0 THEN SOUND 3000, .5: adios = 1
+RETURN
+
+movePiece:
+  change = 0
+  FOR a = 1 TO 4       ' loop determines if new piece is possible
+    IF y(a) + y >= topSide AND y(a) + y <= bottomSide AND x(a) + x >= leftSide AND x(a) + x <= rightSide THEN
+      change = change + array(y(a) + y, x(a) + x)
+    ELSE               '
+      a = 4            '
+      change = 1       '
+    END IF             '
+  NEXT a               '
+  IF change = 0 THEN
+    IF jump = 0 THEN
+      SOUND 2500 + (speed * 1000), .1
+    ELSE
+      SOUND 5000, .1
+    END IF
+    FOR a = 1 TO 4
+      LOCATE yold(a) + yold, 2 * (xold(a) + xold) - 1     ' erase old piece
+      COLOR eraseColor
+      PRINT "лл"
+    NEXT a
+    FOR a = 1 TO 4
+      LOCATE y(a) + y, (x(a) + x) * 2 - 1                 '
+      yold = y                                            '
+      xold = x                                            ' print new piece
+      yold(a) = y(a)                                      '
+      xold(a) = x(a)                                      '
+      COLOR colour
+      PRINT "лл"                                          '
+    NEXT a
+  ELSE
+    IF (y > yold AND direction = 0) OR (y < yold AND direction = 1) THEN
+      jump = 1
+    ELSE
+      SOUND 500, .5
+    END IF
+    x = xold                        '
+    y = yold                        '
+    FOR a = 1 TO 4                  ' goes back to old
+      y(a) = yold(a)                ' piece if new one
+      x(a) = xold(a)                ' isn't possible
+    NEXT a                          '
+  END IF
+RETURN
+
+BorderDraw:
+  FOR a = topSide - 1 TO bottomSide + 1
+    FOR b = leftSide - 1 TO rightSide + 1
+      IF a >= 1 AND a <= 28 AND b >= 1 AND b <= 40 THEN
+        LOCATE a, b * 2 - 1
+        PRINT "лл"
+      END IF
+    NEXT b
+  NEXT a
+  GOSUB CreateBackGround
+RETURN
+
+CreateBackGround:
+  COLOR eraseColor
+  FOR a = topSide TO bottomSide
+    FOR b = leftSide TO rightSide
+      array(a, b) = 0
+      LOCATE a, b * 2 - 1
+      PRINT "лл"
+    NEXT b
+  NEXT a
+RETURN:
+
+pieceGenerator:
+IF piece = 0 THEN           ' лллллл
+y(1) = 0                    '   лл
+x(1) = 0
+y(2) = 0
+x(2) = 1
+y(3) = 0
+x(3) = -1
+y(4) = 1
+x(4) = 0
+ELSEIF piece = 1 THEN       ' лллллл
+y(1) = 0                    ' лл
+x(1) = 0
+y(2) = 0
+x(2) = -1
+y(3) = 0
+x(3) = 1
+y(4) = 1
+x(4) = -1
+ELSEIF piece = 2 THEN       ' лллллл
+y(1) = 0                    '     лл
+x(1) = 0
+y(2) = 0
+x(2) = -1
+y(3) = 0
+x(3) = 1
+y(4) = 1
+x(4) = 1
+ELSEIF piece = 3 THEN       ' лллл
+y(1) = 0                    ' лллл
+x(1) = 0
+y(2) = 0
+x(2) = 1
+y(3) = 1
+x(3) = 0
+y(4) = 1
+x(4) = 1
+ELSEIF piece = 4 THEN       '   лллл
+y(1) = 0                    ' лллл
+x(1) = 0
+y(2) = 0
+x(2) = 1
+y(3) = 1
+x(3) = 0
+y(4) = 1
+x(4) = -1
+ELSEIF piece = 5 THEN       ' лллл
+y(1) = 0                    '   лллл
+x(1) = -1
+y(2) = 0
+x(2) = 0
+y(3) = 1
+x(3) = 0
+y(4) = 1
+x(4) = 1
+ELSEIF piece = 6 THEN       ' лллллллл
+y(1) = 0
+x(1) = -1
+y(2) = 0
+x(2) = 0
+y(3) = 0
+x(3) = 1
+y(4) = 0
+x(4) = 2
+END IF
+FOR a = 1 TO 4
+  yold(a) = y(a)
+  xold(a) = x(a)
+NEXT a
+colour = 9 + piece
+IF colour = eraseColor THEN colour = colour - 8
+RETURN
+
+keyboard:
+IF key$ = CHR$(0) + "P" THEN       ' - down
+IF direction <> 1 THEN y = y + 1
+ELSEIF key$ = CHR$(0) + "M" THEN   ' - right
+x = x + 1
+ELSEIF key$ = CHR$(0) + "H" THEN   ' - up
+IF fly OR direction <> 0 THEN y = y - 1
+ELSEIF key$ = CHR$(0) + "K" THEN   ' - left
+x = x - 1
+ELSEIF key$ = " " THEN             ' - space,
+jump = 1                           '     warp piece down
+ELSEIF key$ = "." THEN             ' - period,
+  FOR a = 1 TO 4                   '     rotates piece
+    SWAP x(a), y(a)                '     clockwise
+    x(a) = -x(a)
+  NEXT a
+ELSEIF key$ = "," THEN             ' - comma,
+  FOR a = 1 TO 4                   '     rotates piece
+    SWAP x(a), y(a)                '     counterclockwise
+    y(a) = -y(a)
+  NEXT a
+ELSEIF key$ = "p" THEN
+  WHILE INKEY$ = ""
+  WEND
+ELSEIF key$ = CHR$(27) THEN
+  adios = 1
+END IF
+RETURN
+
+
+

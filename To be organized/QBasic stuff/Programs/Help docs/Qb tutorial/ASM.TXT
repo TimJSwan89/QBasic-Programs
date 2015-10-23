@@ -1,0 +1,183 @@
+
+
+
+                               A s s e m b l y
+
+                                     i n
+
+                                 Q B a s i c
+
+
+
+
+
+
+
+
+                               By Aaron Severn
+
+                              December 22, 1997
+
+
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+Table of Contents
+
+0 Disclaimer
+1 Introduction
+2 Using Debug to Generate Machine Code
+3 Using Machine Code in QBasic
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+0 Disclaimer
+------------
+
+  I assume no responsibility for any harm that comes from using the material
+contained in this document to you, your computer, or anything relating to
+your existence.  No warranty is provided or implied with this information.
+This document is provided as is.
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+1 Introduction
+--------------
+
+  It's always nice to throw in a little assembly in your QBasic programs, if
+only to speed things up.  Also, some things like BIOS calls are impossible
+in QBasic without assembly (but not in QuickBasic, there's another way).
+Now I'm not going to start teaching you assembly, if that's what you want
+look into one of the hundreds of other tutorials available on that subject,
+this is about taking assembly and making it usable to your QBasic programs.
+
+  I'm sure there are alot of people out there who know how to program in
+assembly well enough but don't have a clue as to how you get all those hex
+numbers that CALL ABSOLUTE uses.  That's where this tutorial will help you.
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+2 Using Debug to Generate Machine Code
+--------------------------------------
+
+  In your DOS directory (or your WINDOWS/COMMAND directory for Windows 95
+users) you will find a nice little program called DEBUG.EXE.  This is
+probably the most user unfriendly piece of software ever created.  If you've
+tried running it you'll notice that you get the following prompt and nothing
+else:
+
+  -
+
+  So what use is that?  Well try typing in the letter 'a' and hitting enter.
+Now you've got just as ugly a screen staring back at you that looks
+something like this:
+
+  -a
+  199D:0100
+
+  But at least we're getting somewhere.  You see, 'a' (which stands for
+assemble, I think) turns DEBUG into a crude assembler.  You can now start
+typing in assembly code.  As an example, let's try something simple like
+turning the mouse on.  Here's the assembly code:
+
+  push ax
+  xor ax,ax
+  int 33
+  mov ax,1
+  int 33
+  pop ax
+  retf
+
+  Enter this code in DEBUG, when you're done enter a blank line, you've just
+written a simple assembly program.  When you enter the blank line at the end
+it should take you back to the dash prompt.  Now enter a 'u' (for unassemble)
+at the prompt.  A whole bunch of weird lines pour out, but wait, there's
+that program we just wrote, and beside it, machine code.  There should be
+four columns on your screen, the first one lists the memory address of each
+bit of code, the second one lists the machine code, the third lists the
+assembly command, and the fourth lists the arguments for that command.  The
+column we want is the second one, copy down those numbers that came out,
+you should get this.
+
+  50
+  31C0
+  CD33
+  B80100
+  CD33
+  58
+  CB
+
+  All those numbers are in hex, so in QBasic you'll have to add the &H
+prefix.
+
+  So now we've got our machine code and we just have to get out of DEBUG.
+Type 'q' at the prompt and we'll move on to implementing this in QBasic.
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+3 Using Machine Code in QBasic
+------------------------------
+
+  Chances are you already know that CALL ABSOLUTE is the command we need to
+use here.  This is how you do it.  First take the numbers that you copied
+down that are the machine code for our little mouse program and put them
+together in a string.  You want to take the ASCII character associated with
+each number, that way we'll have a string of bytes in memory accessible by
+CALL ABSOLUTE.  Your QBasic code should look something like this:
+
+  DIM ASM AS STRING
+
+  ASM = ASM + CHR$(&H50)
+  ASM = ASM + CHR$(&H31) + CHR$(&HC0)
+  ASM = ASM + CHR$(&HCD) + CHR$(&H33)
+  ASM = ASM + CHR$(&HB8) + CHR$(&H1) + CHR$(&H0)
+  ASM = ASM + CHR$(&HCD) + CHR$(&H33)
+  ASM = ASM + CHR$(&H58)
+  ASM = ASM + CHR$(&HCB)
+
+  Now all you have to do is run it.  First set the default segment to the
+segment address of ASM, then use CALL ABSOLUTE with the offset address of
+ASM as the parameter.  Add the following two lines to the bottom of the
+above code and then run it.
+
+  DEF SEG = VARSEG(ASM)
+  CALL ABSOLUTE(SADD(ASM)
+
+  So that's the basics of using ASM in QBasic.  But before I'm finished let
+me write a little about passing variables to your assembly procedures.  For
+example, if you wrote a faster PSET routine done in assembly you'd want to
+pass the (x, y) coordinates and the colour of the pixel.  To do that you
+have to understand where the variables are.  When you put additional
+parameters in a CALL ABSOLUTE statement QBasic puts them on the stack, so
+all you need is to set up a pointer to the stack, which is done with the
+following assembly code.
+
+  push bp
+  mov bp, sp
+  .
+  .     [your code here]
+  .
+  pop bp
+
+  Now bp points to the first byte on the stack.  Take the following sample
+code.  Let's assume that ASM contains code which puts a pixel on the screen.
+
+  DEF SEG = VARSEG(ASM)
+  CALL ABSOLUTE (x, y, colour, SADD(ASM))
+
+  In this example the stack would look something like this:
+
+  0A x
+  08 y
+  06 colour
+  04 QBasic return offset
+  02 QBasic return segment
+  00 bp (pushed on to the stack by the ASM code)
+
+  So in order to get at x you would just use [bp + 0A].  Remember that
+everytime you push a byte on to the stack those numbers will be adjusted.
+For example if you had pushed AX on to the stack then x would be located at
+[bp + 0C] now.  If you push on BX, x is now at [bp + 0E].  You get the
+picture.  So good luck!
+
+

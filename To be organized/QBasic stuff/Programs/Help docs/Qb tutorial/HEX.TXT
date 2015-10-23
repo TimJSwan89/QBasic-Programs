@@ -1,0 +1,309 @@
+
+Hexidecimal Numbers
+-------------------
+by: Milo Sedlacek
+
+First let's consider the system we use all the time, the
+decimal (base 10) system.  Each digit can go from 0 to 9
+like this:
+
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+
+If we wanted to make a sum, we could add numbers like this:
+
+ 1         9           239
++1        +4          +733
+--        --          ---- 
+ 2        13           972
+
+Let's discuss the second example (9+4=13).  When you add 4
+to 9, something like this occurs:
+
+09 (start)
+--
+10
+11
+12
+13 (result)
+
+Notice that when the first digit wrapped around to 0 the second
+digit became one.  Wow, isn't this amazing?  Anyways I'm sure
+you knew that.  Ok now, let's try base 2.
+
+In base 2, each digit can only have 2 values, 0 and 1.
+
+So I could count in base 2 like this:
+
+0000
+0001
+0010
+0011
+0100
+0101
+0110
+0111
+1000
+1001
+1010
+1011
+1100
+1101
+1110
+1111
+
+Neat huh?
+
+Now say I was counting in base 3.  Base 3 is very cool, but not
+very widely used.  You can count in base 3 like this:
+
+(By the way in base 3 each digit can have 3 values, 0, 1 and 2)
+
+base 3:    decimal:
+
+000        0
+001        1 
+002        2
+010        3
+011        4
+012        5
+020        6
+021        7
+022        8
+100        9
+101       10
+102       11 
+110       12
+111       13
+112       14
+120       15
+121       16
+122       17
+200       18 
+201       19
+202       20
+210       21
+211       22
+212       23
+220       24
+221       25
+222       26
+
+Wow eh?
+
+Here's what a byte looks like (by the way).
+
+ 128  64  32  16   8   4   2   1 
++---+---+---+---+---+---+---+---+
+|   |   |   |   |   |   |   |   |
++---+---+---+---+---+---+---+---+
+
+Now in each one of those boxes, I can put a 1
+or 0.  Pretend they're all 0.  The byte would look like this:
+
+ 128  64  32  16   8   4   2   1 
++---+---+---+---+---+---+---+---+
+| 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
++---+---+---+---+---+---+---+---+
+
+(Of course you knew that.)
+
+Anyways, the byte is made up of two parts.  The low nibble and high
+nibble.  Obvserve:
+
+high nibble:            low nibble:  
+
+ 128  64  32  16           8   4   2   1 
++---+---+---+---+       +---+---+---+---+
+| 0 | 0 | 0 | 0 |       | 0 | 0 | 0 | 0 |
++---+---+---+---+       +---+---+---+---+
+
+Now if that's not cool I don't know what is.
+
+Anyways, on we go.
+
+In Hexadecimal, each digit can go from 0 to 15.  Now, there's a problem
+with this.  Any digits higher than 9 reqire 2 characters, so what the
+mighty computer engineers decided to do is represent the digits 10 to
+15 with letters A through F.  This table summarizes it all:
+
+digit:     hex digit:
+
+0          0
+1          1
+2          2
+3          3
+4          4
+5          5
+6          6
+7          7
+8          8
+9          9
+10         A
+11         B
+12         C
+13         D
+14         E
+15         F
+
+Neat-o!
+
+I'll draw some more boxes now.  Remember that box I drew to represent
+the byte?
+
+ 128  64  32  16   8   4   2   1 
++---+---+---+---+---+---+---+---+
+| 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
++---+---+---+---+---+---+---+---+
+
+The numbers above the boxes are 2^bit, where the right-most bit (called
+the least significant bit or LSB) is bit 0 and the left-most bit is bit 7, called the MSB or most significant bit.  Say the value of the byte
+was something like this:
+
+ 128  64  32  16   8   4   2   1 
++---+---+---+---+---+---+---+---+
+| 0 | 0 | 0 | 0 | 1 | 0 | 1 | 1 |
++---+---+---+---+---+---+---+---+
+
+To get the decimal value, I would go like this:
+
+decimal.value = 8 + 2 + 1
+
+So, I add all the numbers above the digit that is one.  (I learned this
+from a commodore 64 book by the way.)
+
+Anyways, on we go.  Say I wanted to draw the byte in base 16 instead of
+base 10.  It would look like this:
+
+  16   1 
++---+---+
+|   |   |
++---+---+
+
+And in the boxes, I could place a digit from 0-15, or 0-F, as we HEXed
+out dudes call it.
+
+Say the byte looked like this:
+
+  16   1 
++---+---+
+| F | E |
++---+---+
+
+To get the decimal value, I would first need to think to determine what
+F and E mean:
+
+hexadecimal:       decimal:
+
+F                  15
+E                  14
+
+Then I would do the following:
+
+decimal.number = 15 * 16 + 14 * 1
+
+And the result would be... (Anybody got a calculator?)
+
+254
+
+Now, does this make sense to you?  I sure hope so.
+
+And now we're going to hex around with 16-bit values.
+
+2 8-bit bytes make a 16-bit word and it can be drawn
+like this, using base 2:
+
+                           
+  3  1                     
+  2  6  8  4  2  1        
+  7  3  1  0  0  0  5  2  1 
+  6  8  9  9  4  2  1  5  2 
+  8  4  2  6  8  4  2  6| 8 64 32 16  8  4  2  1 
++--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
++--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+                        |
+
+Now doesn't that look compicated.  I think it looks
+cool actually.
+
+Still though, one of those boxes can hold a 0 or a
+1.  How about a 16-bit word using base 16?
+
+It would look like zis:
+
+ 4096  256   16    1
++----+----+----+----+
+|    |    |    |    |
++----+----+----+----+
+
+And each of the squares can hold a value from 0-F.
+
+So when you see the value:
+
+&HFFFF
+
+It actually means (in decimal),
+
+15 * 4096 + 15 * 256 + 15 * 16 + 15 * 1 = 65535
+
+Also, one hex digit could be represented by a nibble, because
+it takes 4 binary digits to represent a value from 0-15.  Watch
+this:
+
+0000
+0001
+0010
+0011
+0100
+0101
+0110
+0111
+1000
+1001
+1010
+1011
+1100
+1101
+1110
+1111
+
+See I just counted from 0-15 in binary using only four digits!  Now,
+a nibble looks like this, and it represents one hex digit.
+
+      8   4   2   1 
+   +---+---+---+---+
+   | 0 | 0 | 0 | 0 |
+   +---+---+---+---+
+
+There.  And since it takes 2 nibbles in one byte, like this:
+
+high nibble:            low nibble:  
+
+ 128  64  32  16           8   4   2   1 
++---+---+---+---+       +---+---+---+---+
+| 0 | 0 | 0 | 0 |       | 0 | 0 | 0 | 0 |
++---+---+---+---+       +---+---+---+---+
+
+Then that means that only 2 hex digits are needed to represent a byte.
+
+so &HFF = 255
+and &H10 = 16
+and &H13 = 19
+and &H1 = 1
+
+Neat huh??  You just take the high digit, multiply it by 16 and add the
+low digit, like this!
+
+decimal.value = left.digit * 16 + right.digit
+
+Ok, that's all that's written about hex now...
+

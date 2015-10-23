@@ -1,0 +1,70 @@
+
+Clipping
+
+by Entropy
+
+
+Clipping is a good way to do pixel-by-pixel scrolling without using 
+a library. With clipping, you only show part of a tile, so you can clip 
+off the screen, or within a boundary. For some reason, I only know 
+of one other QB programmer (Marcade) who figured out how to do 
+this by himself. So, now I'm showing you how.
+First, download my pixel-scroller here. It's a program I made (with 
+a little help from RATM) that scrolls the screen pixel-by-pixel, and 
+can even end up between tiles. I commented it as much as I could 
+(I wasn't sure on some stuff). Look through the source so you 
+know what I'm talking about here. Now let's begin.
+
+Let's say you GET a 10x10 tile into an array called Tiles(). Tiles is 
+DIMed like:
+
+DIM Tiles(51) AS INTEGER
+
+Since 10*10/2+1=51.
+Now, here's why you use the equation xsize*ysize/2+1 to find the 
+size of the array. The first slot (Tiles(0)) contains the xsize*8. The 
+second slot (Tiles(1)) contains the ysize. After this is where most 
+people get lost.
+Every other slot holds data for two points. It uses the equation 
+firstpoint+secondpoint*256 to store it. So, let's say you GET a tile 
+with the upperleft corner at 0,0:
+
+GET (0, 0) - (9, 9), Tiles
+
+The third slot would hold the value of POINT(0, 0) plus the value 
+of POINT(1, 0) * 256. Since each slot holds the data for two points 
+(xsize * ysize / 2), and there are two slots holding the size (+2), 
+and it starts at 0 (-1), we use xsize*ysize/2+1. Pretty simple, isn't 
+it? Well, finding the value of a point using an array is a little 
+harder. If you look at my program, you can see how it works (don't 
+try to decipher the main part, I don't quite understand all the 
+numbers).
+
+clipspace! = 2 + (xsize * Clipy + Clipx) / 2
+cliparray = INT(clipspace!)
+
+(where Clipx and Clipy are the coordinates being looked at).
+Now, xsize * Clipy is used because it takes the width times the row 
+of the point. It adds Clipx because that's how far to the side the 
+point is. Then it divides by two because there is data for two points 
+in a slot. It adds two because, without it, using the coordinate 
+(0,0), it would look at Tiles(0), and Tiles(0) and Tiles(1) are used 
+for the dimensions. The reason it's clipspace! is because it might 
+end aup as a decimal because of the division. cliparray is the 
+actual slot being looked at.
+
+IF clipspace! = cliparray THEN
+ colour = Tiles(cliparray) - 256 * INT(Tiles(cliparray) / 256)
+ELSE
+ colour = INT(Tiles(cliparray) / 256)
+END IF
+
+Here you can see why you need both clipspace! and cliparray. If 
+they are the same, it means it's the first point stored in the slot; if 
+not, it's the second. If it's the first point, to find the color you need 
+to take the value of the slot (Tiles(cliparray) minus the value of the 
+second point stored (INT(Tiles(cliparray) / 256) times 256, so you 
+use Tiles(cliparray) - 256 * INT(Tiles(cliparray) / 256). If it's the 
+seond point in the slot, use INT(Tiles(cliparray) / 256). Simple 
+enough?
+Well, that's pretty much all there is to it.

@@ -1,0 +1,44 @@
+
+'-----------Arrow Keys---------
+
+'There are two different ways to use arrow keys, I'll show you both of them
+
+CLS
+PRINT "Press 1 for the first way or 2 for the second way"
+DO
+A$ = INKEY$
+IF A$ = "1" THEN PRINT "Number 1: Hit the Arrows": GOTO first:
+IF A$ = "2" THEN PRINT "Number 2: Hit the Arrows": GOTO second:
+LOOP
+
+first:
+DO
+A$ = INKEY$                    'Get Key
+IF A$ = CHR$(0) + CHR$(72) THEN PRINT "You pressed up!"
+IF A$ = CHR$(0) + CHR$(80) THEN PRINT "You pressed down!"
+IF A$ = CHR$(0) + CHR$(75) THEN PRINT "You pressed left!"
+IF A$ = CHR$(0) + CHR$(77) THEN PRINT "You pressed right!"
+IF A$ = CHR$(27) THEN END '<---ESC button
+LOOP
+
+second:
+DO
+ kbd$ = INKEY$                'Get Key
+ IF kbd$ <> "" THEN
+  SELECT CASE kbd$            'Select what button you hit
+   CASE CHR$(0) + "H"
+    PRINT "Up"
+   CASE CHR$(0) + "P"
+    PRINT "Down"
+   CASE CHR$(0) + "K"
+    PRINT "Left"
+   CASE CHR$(0) + "M"
+    PRINT "Right"
+   CASE CHR$(13)
+    PRINT "You hit Enter"
+   CASE CHR$(27)
+    END
+  END SELECT
+ END IF
+LOOP
+

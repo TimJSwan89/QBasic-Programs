@@ -1,0 +1,158 @@
+'*- Introduction -****************************************************
+
+SCREEN 12
+Introduction:
+CLS
+COLOR 10
+LOCATE 5, 4
+PRINT "Welcome to Pixel Blast!"
+LOCATE 7, 2
+PRINT "You may use the arrow keys to move around, this includes"
+PRINT "eight directions if you use the ---------- on the right"
+PRINT "of the keyboard. Leave at any time by pressing"
+PRINT "You can also change the pixel color by pressing "
+LOCATE 10, 49
+PRINT CHR$(34) + "-" + CHR$(34) + " and " + CHR$(34) + "-" + CHR$(34) + "."
+LOCATE 11, 1
+PRINT "If you want to change the color of the erasing pixel,"
+PRINT "This can also be changed by pressing "
+LOCATE 12, 38
+PRINT CHR$(34) + "-" + CHR$(34) + " and " + CHR$(34) + "-" + CHR$(34) + "."
+PRINT "If you want to clean up any mess from erase pixel colors,"
+PRINT "then press ----- to clear the screen."
+COLOR 12
+LOCATE 8, 33
+PRINT "number pad"
+LOCATE 9, 48
+PRINT "ESC"
+LOCATE 10, 50
+PRINT ","
+LOCATE 10, 58
+PRINT "."
+LOCATE 12, 39
+PRINT ";"
+LOCATE 12, 47
+PRINT "'"
+LOCATE 14, 12
+PRINT "Enter"
+COLOR 10
+LOCATE 9, 51
+PRINT "."
+COLOR 9
+LOCATE 16, 6
+PRINT "Press any key to continue."
+key$ = INKEY$
+WHILE key$ = ""
+key$ = INKEY$
+WEND
+IF key$ = CHR$(27) THEN GOTO Finish
+
+'*- Set Arrays -******************************************************
+
+CLS
+RANDOMIZE TIMER
+x = 200
+y = 200
+dotcolor = 16
+erasecolor = 0
+DIM xspeed(100)
+DIM yspeed(100)
+DIM xdot(100)
+DIM ydot(100)
+DIM colour(100)
+DIM colour2(100)
+
+'*- Pixel Engine -****************************************************
+                                                                    '*
+DO                                                                  '*
+  FOR a = 1 TO 100                                                  '*
+  key$ = INKEY$                                                     '*
+  IF key$ <> "" THEN GOSUB keyboard                                 '*
+    PSET (INT(xdot(a)), INT(ydot(a))), colour2(a)                   '*
+    IF dotcolor = 16 THEN             '}******************************
+      colour(a) = INT(RND * 14) + 1   '} - Color Editing -          '*
+    ELSE                              '}                            '*
+      colour(a) = dotcolor            '}                            '*
+    END IF                            '}                            '*
+    IF erasecolor = 16 THEN           '}                            '*
+      colour2(a) = colour(a)          '}                            '*
+    ELSE                              '}                            '*
+      colour2(a) = erasecolor         '}                            '*
+    END IF                            '}******************************
+  xdot(a) = x                                                       '*
+  ydot(a) = y                                                       '*
+  xspeed(a) = RND * 2 - 1                                           '*
+  yspeed(a) = RND * 2 - 1                                           '*
+    FOR b = 1 TO 100                                '}****************
+    PSET (INT(xdot(b)), INT(ydot(b))), colour2(b)   '} - Nested     '*
+    xdot(b) = xdot(b) + xspeed(b)                   '} Animation    '*
+    ydot(b) = ydot(b) + yspeed(b)                   '} Loop -       '*
+    PSET (INT(xdot(b)), INT(ydot(b))), colour(b)    '}              '*
+    NEXT b                                          '}****************
+  NEXT a                                                            '*
+LOOP                                                                '*
+                                                                    '*
+'*- Keyboard Subroutine -*********************************************
+
+keyboard:
+IF key$ = CHR$(0) + "P" OR key$ = "2" THEN
+y = y + 10
+ELSEIF key$ = CHR$(0) + "M" OR key$ = "6" THEN
+x = x + 10
+ELSEIF key$ = CHR$(0) + "H" OR key$ = "8" THEN
+y = y - 10
+ELSEIF key$ = CHR$(0) + "K" OR key$ = "4" THEN
+x = x - 10
+ELSEIF key$ = "7" THEN
+x = x - 10
+y = y - 10
+ELSEIF key$ = "9" THEN
+x = x + 10
+y = y - 10
+ELSEIF key$ = "1" THEN
+x = x - 10
+y = y + 10
+ELSEIF key$ = "3" THEN
+x = x + 10
+y = y + 10
+ELSEIF key$ = "," THEN
+  dotcolor = dotcolor - 1
+  IF dotcolor = 0 THEN dotcolor = 16
+ELSEIF key$ = "." THEN
+  dotcolor = dotcolor + 1
+  IF dotcolor = 17 THEN dotcolor = 1
+ELSEIF key$ = ";" THEN
+  erasecolor = erasecolor - 1
+  IF erasecolor = -1 THEN erasecolor = 16
+ELSEIF key$ = "'" THEN
+  erasecolor = erasecolor + 1
+  IF erasecolor = 17 THEN erasecolor = 0
+ELSEIF key$ = CHR$(13) THEN
+CLS
+ELSEIF key$ = CHR$(27) THEN
+  GOTO Finish
+ELSE
+END IF
+RETURN
+
+'*- Program Closing -*************************************************
+
+Finish:
+CLS
+COLOR 10
+LOCATE 10, 10
+PRINT "Thanks for trying out my program."
+COLOR 9
+LOCATE 12, 35
+PRINT "-Timothy John Swan, March 23, 2006"
+COLOR 15
+LOCATE 27, 1
+PRINT "Press enter to restart,"
+PRINT "or press any of them 'ol keys to go bye bye."
+key$ = INKEY$
+WHILE key$ = ""
+key$ = INKEY$
+WEND
+IF key$ = CHR$(13) THEN GOTO Introduction
+END
+

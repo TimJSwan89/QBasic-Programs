@@ -1,0 +1,110 @@
+
+While refreshing my memory on Hexadecimal and Binary notations
+(and the use of the logical operators <AND> <OR>, I found that
+it helped to take notes. This is a compilation of those notes.
+Some phrasing is entirely my own. So if you find any mistakes
+(other than grammar, sentence structure, or spelling! <smile>)
+please inform me so I can correct my document file. This
+document should prove useful to the new programmers.
+ 
+                     A little info on Hexadecimal notation.
+ 
+Hexadecimal is a numbering system based on 16 elements.
+Digits are numbered 0 through F as follows:
+ 
+0, 1, 2, 3, 4, 5, 6, 7, 8, 9, A, B, C, D, E, F
+ 
+Representing the digits 0 through 15.
+ 
+Hexadecimal system uses powers of 16. For example:
+&H19 (hexadecimal) represents 25 decimal. Let's see why.
+Starting from the right the power is 1. Therefore 9 X 1 = 9
+Moving left the next is power is 16. Therefore 1 X 16 = 16
+And 9 + 16 = 25.
+ 
+Let's try another. This time &HFF (hexadecimal)
+Again starting from the right (F=15) 15 X 1= 15
+Moving left 15 X 16 = 240.
+And 240 + 15 = 255
+ 
+So far we have looked at single byte hex values. Let's look at
+a 16 bit hex value. Remember 8 bits to the byte? Now we look at
+two adjoining bytes, or sixteen bits.
+ 
+&H1902 (hexadecimal) represents 6402 decimal.
+ 
+Again starting from the right 2 X 1= 2
+Moving left 0 X 16 = 0
+Moving left again <16 X 16 =256> 9 X 256 = 2304
+Moving left again <16 X 256 = 4096> 1 X 4096 = 4096
+And 2 + 0 + 2304 + 4096 = 6402
+ 
+In basic hex values are preceeded by &H. For example &HFF or &H1902
+In basic hex values can be determined by the command PRINT &HFF
+or PRINT &H1902.
+ 
+Decimal to hex is accomplished by PRINT HEX$(255)
+or PRINT HEX$(1902).
+ 
+Now let's look at the individual bits within a byte.
+ 
+Remember there are 8 bits to the byte and reading from Right
+to Left they increase in power by the power of 2.
+ 
+Binary notation reflects set bits with a 1. Non set bits with a 0.
+Let's look at one.
+ 
+1 0 0 0 1 0 0 1 (This byte represents 137)
+As with hex we start at the right.
+ 
+1 X 1= 1
+Moving left 2 X 0 = 0
+Moving left again 4 X 0 = 0
+Moving left again 8 X 1 = 8
+Moving left again 16 X 0 = 0
+Moving left again 32 X 0 = 0
+Moving left again 64 X 0 = 0
+Moving left again 128 X 1 = 128
+ 
+And 1 + 0 + 0 + 8 + 0 + 0 + 0 + 128 = 137
+ 
+                     Logical Operators <AND> <OR>
+ 
+When you AND two numbers the results are in a new third number.
+For example:
+a = 137
+b = 105
+c = a AND b
+ 
+1 0 0 0 1 0 0 1  This represents A <137>
+0 1 1 0 1 0 0 1  This represents B <105>
+ 
+0 0 0 0 1 0 0 1  This represents C <9>
+ 
+What occurs when you AND two numbers is that the computer compares
+the bits within the first number against the bits in the second number.
+If the bits are the same then they will remain the same in the third
+number.
+If they are not the same then the equivalent bits will be 0 in the
+third number.
+ 
+ 
+                               "Logical OR
+ 
+What occurs when you OR two numbers is that the computer compares
+the bits within the first number against the bits in the second number.
+If the bits are the same they will remain the same in the third number.
+If they are not the same then the bits will be 1 in the third number.
+ 
+For example:
+A=122
+B=15
+C=A OR B
+ 
+0 1 1 1 1 0 1 0   This represents A <122>
+0 0 0 0 1 1 1 1   This represents B <15>
+ 
+0 1 1 1 1 1 1 1   This represents C <127>
+ 
+This quick little reference document composed by Earl Montgomery
+I hope it proves to be of some use to you.
